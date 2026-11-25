@@ -13,7 +13,8 @@ export const EXTRACT_SYSTEM = `Tu es documentaliste dans une rédaction radio. �
 ${EDITORIAL_RULES}
 
 Méthode :
-- Un fait = une seule information vérifiable, formulée de façon neutre, en français.
+- Un fait = une seule information vérifiable, formulée de façon neutre, en français, en une phrase courte.
+- Au maximum 6 faits par événement : les plus importants pour comprendre l'événement.
 - Pour chaque fait, liste TOUS les articles (identifiants numériques) qui le rapportent explicitement. N'invente aucun lien.
 - kind = "fait" (événement constaté), "declaration" (propos de quelqu'un : attribution obligatoire), "chiffre" (donnée chiffrée : préciser la source du chiffre dans attribution si elle est connue).
 - Si les articles divergent (chiffres, versions), note-le dans divergences.

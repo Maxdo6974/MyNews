@@ -10,7 +10,7 @@ import type { CountryCode, Duration, Language, ThemeId } from "./types";
 /** Nombre de sujets par bulletin. */
 const STORIES: Record<Duration, number> = { court: 3, standard: 4 };
 /** Événements candidats envoyés à l'extraction (certains seront écartés). */
-const CANDIDATES = 7;
+const CANDIDATES = 6;
 const ARTICLES_PER_EVENT = 6;
 const MAX_REWRITES = 2;
 
@@ -188,7 +188,7 @@ export async function generateBulletin(opts: GenerateOptions): Promise<BulletinR
 
     // 2. Extraction des faits.
     const extracted = await llm<{ events: { event_id: number; is_news: boolean; reject_reason?: string; facts: { statement: string; kind: FactRecord["kind"]; attribution?: string | null; article_ids: number[] }[] }[] }>({
-      purpose: "extraction", bulletinId, maxTokens: 6000, system: EXTRACT_SYSTEM, schema: EXTRACT_SCHEMA,
+      purpose: "extraction", bulletinId, maxTokens: 16000, system: EXTRACT_SYSTEM, schema: EXTRACT_SCHEMA,
       user: `Voici ${candidates.length} événements et leurs articles.\n\n${articlesBlock(candidates)}\n\nExtrais les faits de chaque événement.`,
     });
     const newsEvents = new Set<number>();
@@ -223,7 +223,7 @@ export async function generateBulletin(opts: GenerateOptions): Promise<BulletinR
     if (!toVerify.length) throw new Error("Aucun fait exploitable après extraction.");
     const verifyEvents = candidates.filter((c) => newsEvents.has(c.eventId));
     const verified = await llm<{ verdicts: { fact_id: string; verdict: "confirme" | "rejete"; reason: string }[] }>({
-      purpose: "verification", bulletinId, maxTokens: 5000, system: VERIFY_SYSTEM, schema: VERIFY_SCHEMA,
+      purpose: "verification", bulletinId, maxTokens: 12000, system: VERIFY_SYSTEM, schema: VERIFY_SCHEMA,
       user: `ARTICLES SOURCES\n\n${articlesBlock(verifyEvents)}\n\nFAITS À VÉRIFIER\n\n${toVerify.map((f) => `${f.fact_id} | articles ${f.article_ids.join(", ")} | ${f.kind}${f.attribution ? ` (${f.attribution})` : ""} | ${f.statement}`).join("\n")}`,
     });
     const verdicts = new Map((verified.verdicts ?? []).map((v) => [v.fact_id, v]));
@@ -263,7 +263,7 @@ ${factsForScript}`;
     let attempts = 0;
     for (; attempts <= MAX_REWRITES; attempts++) {
       script = await llm({
-        purpose: attempts === 0 ? "redaction" : "reecriture", bulletinId, maxTokens: 3000,
+        purpose: attempts === 0 ? "redaction" : "reecriture", bulletinId, maxTokens: 6000,
         system: scriptSystem(opts.language), schema: SCRIPT_SCHEMA,
         user: feedback ? `${brief}\n\nTA VERSION PRÉCÉDENTE A ÉTÉ REFUSÉE PAR LE CONTRÔLE QUALITÉ :\n${feedback}\n\nVersion précédente :\n${JSON.stringify(script)}\n\nRéécris en corrigeant chaque point.` : brief,
       });
