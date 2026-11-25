@@ -18,6 +18,18 @@ describe("contrôle qualité", () => {
     expect(r.issues.join(" ")).toContain("malheureusement");
     expect(r.issues.join(" ")).not.toContain("catastrophique");
   });
+  it("refuse les redites et les commentaires sur les sources", () => {
+    const r = runQc({ ...base, intro: "Bonjour.", chapters: [{ title: "Douanes", text: `Les partenaires visés comprennent l'Union européenne et la Chine. L'Union européenne et la Chine figurent donc parmi les partenaires visés. Ce chiffre est rapporté par France 24 uniquement. ${filler(280)}`, fact_ids: ["E1F1"] }], outro: "Fin." });
+    const all = r.issues.join(" ");
+    expect(all).toContain("répétée");
+    expect(all).toContain("Commentaire sur les sources");
+  });
+
+  it("ne confond pas deux phrases différentes sur la même personne avec une redite", () => {
+    const r = runQc({ ...base, intro: "Bonjour.", chapters: [{ title: "Justice", text: `Gérald Darmanin a saisi l'Inspection générale de la Justice mercredi. Gérald Darmanin a déploré un défaut de loyauté du magistrat concerné. ${filler(280)}`, fact_ids: ["E1F1"] }], outro: "Fin." });
+    expect(r.issues.join(" ")).not.toContain("répétée");
+  });
+
   it("refuse un chiffre absent des faits vérifiés", () => {
     const r = runQc({ ...base, intro: "Bonjour.", chapters: [{ title: "Pont", text: `Les travaux coûteront 12 millions. ${filler(280)}`, fact_ids: ["E1F1"] }], outro: "Fin." });
     expect(r.issues.join(" ")).toContain("12");

@@ -94,5 +94,5 @@ export const PERSONAS: Persona[] = [
 
 export const TARGET_WORDS: Record<"court" | "standard", { min: number; max: number }> = {
   court: { min: 270, max: 330 },
-  standard: { min: 400, max: 470 },
+  standard: { min: 360, max: 460 },
 };

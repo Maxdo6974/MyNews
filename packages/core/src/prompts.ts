@@ -45,6 +45,9 @@ Règles d'écriture :
 - Chiffres écrits en chiffres, exactement comme dans les faits.
 - Aucun adjectif ou adverbe de jugement, aucune formule du type « heureusement », « bonne nouvelle », « polémique ».
 - Ne recopie aucune phrase des titres d'articles : reformule.
+- Ne répète JAMAIS une information déjà dite, même reformulée : chaque phrase apporte un fait nouveau.
+- Ne commente pas les sources (pas de « ce chiffre n'est rapporté que par… », « selon une seule source ») : l'attribution « selon <média> » suffit.
+- Ne remplis pas pour atteindre la longueur : si les faits ne suffisent pas, le flash est un peu plus court.
 - Titres de sujets : 3 à 6 mots, neutres.
 - Ouverture : salutation, date et heure fournies, thème et pays, puis annonce des titres en une phrase.
 - Clôture : une phrase sobre, rappel que les sources sont disponibles dans l'application.`;

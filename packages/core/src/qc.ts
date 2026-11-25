@@ -82,6 +82,24 @@ export function runQc(input: QcInput): QcReport {
   const bad = unknownNumbers.filter((n) => !tolerated.has(norm(n)));
   if (bad.length) issues.push(`Chiffres absents des faits vérifiés : ${bad.join(", ")}.`);
 
+  // Redites : deux phrases quasi identiques dans un même sujet (remplissage).
+  const sig = (sentence: string) => new Set(words(norm(sentence)).filter((w) => w.length > 3));
+  input.chapters.forEach((c, ci) => {
+    const sentences = c.text.split(/(?<=[.!?])\s+/).map(sig).filter((x) => x.size >= 4);
+    for (let i = 0; i < sentences.length; i++) {
+      for (let j = i + 1; j < sentences.length; j++) {
+        const inter = [...sentences[i]].filter((w) => sentences[j].has(w)).length;
+        // Part des mots de la phrase la plus courte repris dans l'autre.
+        if (inter / Math.min(sentences[i].size, sentences[j].size) >= 0.8) { issues.push(`Sujet ${ci + 1} : la même information est répétée.`); return; }
+      }
+    }
+  });
+
+  // Commentaires sur les sources (l'attribution « selon … » suffit).
+  if (/(n'est rapport[ée]e? que par|rapport[ée]e?s? (?:par [^.]{0,40})?uniquement|une seule source|only reported by|reported by [^.]{0,40} only|a single source)/i.test(all)) {
+    issues.push("Commentaire sur les sources : se limiter à « selon <média> ».");
+  }
+
   // Copie : aucune suite de COPY_WINDOW mots identique à une source (= phrase recopiée).
   const shingles = new Set<string>();
   for (const t of input.sourceTexts) {

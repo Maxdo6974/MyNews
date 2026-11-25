@@ -81,8 +81,10 @@
 - **Format unique de 3 minutes** : choix de durée retiré ; l'interrupteur de langue de l'audio prend sa place.
 - **Voix plus dynamique** : nouvelles consignes (débit soutenu, attaque nette, intonation vivante) et accélération ×1,08 sans changement de hauteur (`AUDIO_TEMPO`, entre 0,9 et 1,25) ; silences entre sujets ramenés à 0,5 s.
 - **Musique de fond « JT » sous l'introduction** : composée par le programme (ffmpeg, aucun droit d'auteur) — tic-tac en double croches, basse pulsée à 120 bpm, accords la mineur – fa – sol ; 1,8 s seule, puis à −14 dB sous la voix, puis fondu de 1,2 s.
+- **Anti-remplissage** (constaté sur le bulletin n° 6) : consigne de ne jamais répéter une information ni commenter les sources ; contrôle qualité qui refuse les phrases quasi identiques (≥ 80 % des mots de la plus courte) et les commentaires du type « rapporté par … uniquement » ; longueur visée 360 à 460 mots.
+- Essai réel (bulletin n° 6, France, généraliste, 3 min) : 412 mots, 0,18 €, 86 s ; audio FR (Le Présentateur) 2 min 46, 17 s, 0,06 € ; traduction EN 8 s ; audio EN (La Présentatrice) 2 min 33, 15 s, 0,05 €.
 - L'audio existant a été supprimé par la migration 5 (il sera refait avec le nouveau montage à la première écoute).
-- Tests : 35.
+- Tests : 37.
 
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
