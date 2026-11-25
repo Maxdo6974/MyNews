@@ -15,7 +15,8 @@ export function configDir(): string {
   throw new Error("Dossier config/ introuvable (définir FLASH_CONFIG_DIR)");
 }
 
-export function loadSources(): Source[] {
+/** Sources actives uniquement (includeInactive = true pour l'admin). */
+export function loadSources(includeInactive = false): Source[] {
   const raw = parse(fs.readFileSync(path.join(configDir(), "sources.yaml"), "utf8")) as {
     defaults: Partial<Source>;
     sources: Partial<Source>[];
@@ -29,7 +30,7 @@ export function loadSources(): Source[] {
     if (ids.has(src.id)) throw new Error(`Identifiant de source en double : ${src.id}`);
     ids.add(src.id);
     return src;
-  });
+  }).filter((s) => includeInactive || s.actif !== false);
 }
 
 export const COUNTRIES: { id: CountryCode; label: Record<Language, string>; flag: string; tz: string }[] = [

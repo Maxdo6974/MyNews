@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import { decodeHTML } from "entities";
 import type { HealthResult, Source } from "./types";
 
 export const USER_AGENT =
@@ -11,11 +12,16 @@ export interface ParsedFeedItem {
   published: string | null;
 }
 
-const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: "@_", textNodeName: "#text" });
+const parser = new XMLParser({
+  ignoreAttributes: false,
+  attributeNamePrefix: "@_",
+  textNodeName: "#text",
+  htmlEntities: true,
+});
 
 function text(v: unknown): string {
   if (v == null) return "";
-  if (typeof v === "string" || typeof v === "number") return String(v).trim();
+  if (typeof v === "string" || typeof v === "number") return decodeHTML(String(v)).trim();
   if (Array.isArray(v)) return text(v[0]);
   if (typeof v === "object") {
     const o = v as Record<string, unknown>;

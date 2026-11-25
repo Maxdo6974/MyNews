@@ -14,6 +14,7 @@
     "health": "tsx src/cli/health.ts"
   },
   "dependencies": {
+    "entities": "^9.0.0",
     "fast-xml-parser": "^5.12.1",
     "yaml": "^2.9.1"
   },

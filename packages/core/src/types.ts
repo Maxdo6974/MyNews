@@ -29,6 +29,7 @@ export interface Source {
   themes: ThemeId[];
   url: string;
   statut: SourceStatus;
+  actif: boolean;
 }
 
 export interface HealthResult {

@@ -9,6 +9,7 @@
 defaults:
   statut: a_verifier
   poids: 0.8
+  actif: true   # false = source ignorée (gardée pour mémoire)
 
 sources:
   # ───────────── FRANCE ─────────────
@@ -36,6 +37,7 @@ sources:
     poids: 0.9
     themes: [generaliste, politique, economie, international]
     url: https://www.lefigaro.fr/rss/figaro_actualites.xml
+    actif: false   # 25/11/2026 : HTTP 403, le site refuse les robots — on ne contourne pas
   - id: liberation
     nom: Libération
     pays: FR
@@ -52,6 +54,7 @@ sources:
     poids: 1.0
     themes: [economie]
     url: https://services.lesechos.fr/rss/les-echos-economie.xml
+    actif: false   # 25/11/2026 : HTTP 403, le site refuse les robots — on ne contourne pas
   - id: france24_fr
     nom: France 24
     pays: FR
@@ -102,6 +105,7 @@ sources:
     poids: 1.0
     themes: [generaliste, politique, economie, international]
     url: https://xml2.corriereobjects.it/rss/homepage.xml
+    actif: false   # 25/11/2026 : flux figé depuis mai 2024
   - id: repubblica
     nom: la Repubblica
     pays: IT
@@ -142,6 +146,7 @@ sources:
     poids: 1.0
     themes: [sport]
     url: https://www.gazzetta.it/rss/home.xml
+    actif: false   # 25/11/2026 : flux figé depuis décembre 2023
 
   # ───────────── ALLEMAGNE ─────────────
   - id: tagesschau
@@ -284,3 +289,69 @@ sources:
     poids: 1.0
     themes: [international]
     url: https://www.france24.com/en/rss
+
+  # ───────────── CANDIDATS DE REMPLACEMENT (25/11/2026, à confirmer par /test) ─────────────
+  - id: lepoint
+    nom: Le Point
+    pays: FR
+    langue: fr
+    groupe: groupe_artemis
+    poids: 0.9
+    themes: [generaliste, politique, economie, international]
+    url: https://www.lepoint.fr/rss.xml
+  - id: latribune
+    nom: La Tribune
+    pays: FR
+    langue: fr
+    groupe: la_tribune
+    poids: 0.9
+    themes: [economie]
+    url: https://www.latribune.fr/feed.xml
+  - id: lemonde_eco
+    nom: Le Monde Économie
+    pays: FR
+    langue: fr
+    groupe: groupe_le_monde
+    poids: 1.0
+    themes: [economie]
+    url: https://www.lemonde.fr/economie/rss_full.xml
+  - id: corriere_v2
+    nom: Corriere della Sera
+    pays: IT
+    langue: it
+    groupe: rcs
+    poids: 1.0
+    themes: [generaliste, politique, economie, international]
+    url: https://www.corriere.it/dynamic-feed/rss/homepage.xml
+  - id: corriere_v3
+    nom: Corriere della Sera (cronache)
+    pays: IT
+    langue: it
+    groupe: rcs
+    poids: 1.0
+    themes: [generaliste]
+    url: https://xml2.corriereobjects.it/rss/cronache.xml
+  - id: gazzetta_v2
+    nom: La Gazzetta dello Sport
+    pays: IT
+    langue: it
+    groupe: rcs
+    poids: 1.0
+    themes: [sport]
+    url: https://www.gazzetta.it/dynamic-feed/rss/section/last.xml
+  - id: corrieredellosport
+    nom: Corriere dello Sport
+    pays: IT
+    langue: it
+    groupe: corriere_dello_sport
+    poids: 0.9
+    themes: [sport]
+    url: https://www.corrieredellosport.it/rss
+  - id: ansa_sport
+    nom: ANSA Sport
+    pays: IT
+    langue: it
+    groupe: ansa
+    poids: 1.0
+    themes: [sport]
+    url: https://www.ansa.it/sito/notizie/sport/sport_rss.xml

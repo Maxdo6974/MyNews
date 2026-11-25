@@ -24,6 +24,10 @@ describe("analyse des flux", () => {
     expect(items[0]).toMatchObject({ title: "Titre A", link: "https://ex.org/a", summary: "Chapô A" });
     expect(items[0].published).toBe("2026-11-25T08:00:00.000Z");
   });
+  it("décode les entités HTML des titres", () => {
+    const xml = `<rss><channel><item><title>M&#xE8;re &amp; enfant &#233;t&eacute;</title><link>https://ex.org/m</link></item></channel></rss>`;
+    expect(parseFeed(xml)[0].title).toBe("Mère & enfant été");
+  });
   it("lit un flux Atom", () => {
     const xml = `<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>X</title><link href="https://ex.org/x"/><updated>2026-11-25T10:00:00Z</updated></entry></feed>`;
     expect(parseFeed(xml)[0]).toMatchObject({ title: "X", link: "https://ex.org/x" });
