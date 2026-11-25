@@ -78,6 +78,35 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       );
     `,
   },
+  {
+    id: 2,
+    name: "clusters (événements)",
+    sql: `
+      CREATE TABLE clusters (
+        id              bigserial PRIMARY KEY,
+        pays            text NOT NULL,
+        label           text NOT NULL,
+        themes          text[] NOT NULL DEFAULT '{}',
+        groups          text[] NOT NULL DEFAULT '{}',
+        sources         text[] NOT NULL DEFAULT '{}',
+        n_articles      integer NOT NULL,
+        n_groups        integer NOT NULL,
+        score           real NOT NULL,
+        confirmed       boolean NOT NULL,
+        featured        boolean NOT NULL DEFAULT false,
+        first_published timestamptz NOT NULL,
+        last_published  timestamptz NOT NULL,
+        computed_at     timestamptz NOT NULL DEFAULT now()
+      );
+      CREATE INDEX clusters_pays_score ON clusters (pays, score DESC);
+      CREATE TABLE cluster_articles (
+        cluster_id bigint NOT NULL REFERENCES clusters(id) ON DELETE CASCADE,
+        article_id bigint NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+        PRIMARY KEY (cluster_id, article_id)
+      );
+      CREATE INDEX cluster_articles_article ON cluster_articles (article_id);
+    `,
+  },
 ];
 
 const MIGRATION_LOCK = 72_000_001;

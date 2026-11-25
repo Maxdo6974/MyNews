@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { hasDatabase, ingestAll, ingestionOverview } from "@flash-info/core";
+import { computeAllEvents, hasDatabase, ingestAll, ingestionOverview } from "@flash-info/core";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -14,5 +14,6 @@ export async function GET() {
 export async function POST() {
   if (!hasDatabase()) return NextResponse.json({ error: "Base de données non configurée" }, { status: 503 });
   const result = await ingestAll("manuel", 120);
+  if (!result.skipped) await computeAllEvents();
   return NextResponse.json(result, { status: result.skipped ? 429 : 200 });
 }

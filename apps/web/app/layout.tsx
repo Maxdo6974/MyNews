@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <footer className="border-t border-line text-xs text-ink-soft">
           <div className="mx-auto max-w-3xl px-5 py-5 flex flex-col sm:flex-row gap-2 justify-between">
             <span>Contenu généré automatiquement à partir de sources citées. Voix générée par IA.</span>
-            <span>v0.3 · étape 3</span>
+            <span>v0.4 · étape 4</span>
           </div>
         </footer>
       </body>

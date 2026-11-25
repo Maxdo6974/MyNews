@@ -1,11 +1,11 @@
-import { dailyBudgetEur, hasDatabase, isDemoMode, loadSources } from "@flash-info/core";
+import { THEMES, dailyBudgetEur, hasDatabase, isDemoMode, loadSources } from "@flash-info/core";
+import Events from "./Events";
 import Ingestion from "./Ingestion";
 import SourcesHealth from "./SourcesHealth";
 
 export const dynamic = "force-dynamic";
 
 const STEPS = [
-  { n: 4, title: "Regrouper et classer", desc: "Regrouper les articles par événement, garder ceux confirmés par ≥ 2 groupes de presse." },
   { n: 5, title: "Extraire et vérifier les faits", desc: "Faits retenus et rejetés, avec la raison de chaque rejet." },
   { n: 5, title: "Écrire le script", desc: "Script du bulletin et résultat du contrôle qualité." },
   { n: 6, title: "Générer l'audio", desc: "Voix OpenAI et post-production, lecteur intégré." },
@@ -38,6 +38,19 @@ export default function TestPage() {
             <p className="mt-1 font-semibold">{x.v}</p>
           </div>
         ))}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold">Événements détectés</h2>
+        <p className="text-sm text-ink-soft mt-1">
+          Articles regroupés par événement (36 dernières heures), classés par nombre de groupes de presse indépendants, fraîcheur et fiabilité.
+          Recalculés après chaque récupération.
+        </p>
+        {hasDatabase() ? (
+          <Events themes={THEMES.map((t) => ({ id: t.id, label: t.label.fr }))} />
+        ) : (
+          <p className="mt-3 text-sm text-accent">Base de données non configurée.</p>
+        )}
       </section>
 
       <section>

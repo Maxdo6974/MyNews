@@ -1,4 +1,5 @@
 import { hasDatabase, migrate } from "./db";
+import { computeAllEvents } from "./events";
 import { ingestAll } from "./ingest";
 
 const g = globalThis as unknown as { __flashScheduler?: NodeJS.Timeout };
@@ -30,6 +31,8 @@ export async function startScheduler(): Promise<void> {
       const r = await ingestAll(trigger);
       if (r.skipped) log(`Récupération ignorée : ${r.reason}`);
       else log(`Récupération ${r.runId} : ${r.newArticles} nouveaux articles, ${r.sourcesOk} sources OK, ${r.sourcesKo} en échec (${Math.round(r.durationMs / 1000)} s)`);
+      const ev = await computeAllEvents();
+      log(`Événements : ${ev.map((e) => `${e.pays} ${e.confirmed} confirmés`).join(", ")}`);
     } catch (e) {
       log(`Erreur de récupération : ${(e as Error).message}`);
     }
