@@ -74,6 +74,10 @@ flash-info/
 
 **Cache et coûts** : le script est écrit une fois par combinaison pays × thème × langue × édition ; l'audio de chaque voix est créé à la première écoute puis réutilisé. Plafond quotidien de dépenses (2 € par défaut) : au-delà, la génération s'arrête et /test l'indique.
 
+## 4 bis. Ajustements faits pendant le développement
+- **Étape 3** : la récupération des flux tourne dans le service web (démarrée par `instrumentation.ts`), protégée par un verrou PostgreSQL. Un service « worker » séparé sera créé à l'étape 8.
+- **Étape 3** : pas encore de pgvector. Avec quelques milliers d'articles sur 36 h, le regroupement de l'étape 4 peut calculer les similarités en mémoire ; pgvector sera ajouté si le volume l'exige.
+
 ## 5. Environnement de test
 
 - Branche `staging` → service Railway « staging » protégé par mot de passe ; branche `main` → production.
