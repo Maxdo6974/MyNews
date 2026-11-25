@@ -361,3 +361,62 @@ sources:
     poids: 1.0
     themes: [sport]
     url: https://www.ansa.it/sito/notizie/sport/sport_rss.xml
+
+  # ───────────── PISTES POUR LE FIGARO ET LES ÉCHOS (25/11/2026, en test) ─────────────
+  # Même « groupe » que le média d'origine : ils ne comptent jamais comme une source indépendante de plus.
+  - id: lefigaro_politique
+    nom: Le Figaro (flux Politique)
+    pays: FR
+    langue: fr
+    groupe: groupe_figaro
+    poids: 0.9
+    themes: [politique]
+    url: https://www.lefigaro.fr/rss/figaro_politique.xml
+  - id: lesechos_syndication
+    nom: Les Échos (flux de syndication)
+    pays: FR
+    langue: fr
+    groupe: groupe_les_echos
+    poids: 1.0
+    themes: [economie]
+    url: https://syndication.lesechos.fr/rss/rss_une.xml
+  - id: lefigaro_gnews
+    nom: Le Figaro (via Google News)
+    pays: FR
+    langue: fr
+    groupe: groupe_figaro
+    poids: 0.9
+    themes: [generaliste, politique, economie, international]
+    url: https://news.google.com/rss/search?q=site:lefigaro.fr+when:1d&hl=fr&gl=FR&ceid=FR:fr
+  - id: lesechos_gnews
+    nom: Les Échos (via Google News)
+    pays: FR
+    langue: fr
+    groupe: groupe_les_echos
+    poids: 1.0
+    themes: [economie]
+    url: https://news.google.com/rss/search?q=site:lesechos.fr+when:1d&hl=fr&gl=FR&ceid=FR:fr
+  - id: corriere_gnews
+    nom: Corriere della Sera (via Google News)
+    pays: IT
+    langue: it
+    groupe: rcs
+    poids: 1.0
+    themes: [generaliste, politique, economie, international]
+    url: https://news.google.com/rss/search?q=site:corriere.it+when:1d&hl=it&gl=IT&ceid=IT:it
+  - id: lefigaro_gdelt
+    nom: Le Figaro (via GDELT)
+    pays: FR
+    langue: fr
+    groupe: groupe_figaro
+    poids: 0.9
+    themes: [generaliste, politique, economie, international]
+    url: https://api.gdeltproject.org/api/v2/doc/doc?query=domain:lefigaro.fr&mode=artlist&format=rss&timespan=24h&maxrecords=50
+  - id: lesechos_gdelt
+    nom: Les Échos (via GDELT)
+    pays: FR
+    langue: fr
+    groupe: groupe_les_echos
+    poids: 1.0
+    themes: [economie]
+    url: https://api.gdeltproject.org/api/v2/doc/doc?query=domain:lesechos.fr&mode=artlist&format=rss&timespan=24h&maxrecords=50
