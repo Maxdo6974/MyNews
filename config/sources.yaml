@@ -290,7 +290,7 @@ sources:
     themes: [international]
     url: https://www.france24.com/en/rss
 
-  # ───────────── CANDIDATS DE REMPLACEMENT (25/11/2026, à confirmer par /test) ─────────────
+  # ───────────── REMPLAÇANTS testés depuis le serveur le 25/11/2026 ─────────────
   - id: lepoint
     nom: Le Point
     pays: FR
@@ -299,6 +299,7 @@ sources:
     poids: 0.9
     themes: [generaliste, politique, economie, international]
     url: https://www.lepoint.fr/rss.xml
+    actif: false   # 25/11/2026 : HTTP 404
   - id: latribune
     nom: La Tribune
     pays: FR
@@ -315,6 +316,7 @@ sources:
     poids: 1.0
     themes: [economie]
     url: https://www.lemonde.fr/economie/rss_full.xml
+    # même groupe que Le Monde : ne compte pas comme source indépendante de lui
   - id: corriere_v2
     nom: Corriere della Sera
     pays: IT
@@ -323,6 +325,7 @@ sources:
     poids: 1.0
     themes: [generaliste, politique, economie, international]
     url: https://www.corriere.it/dynamic-feed/rss/homepage.xml
+    actif: false   # 25/11/2026 : HTTP 404
   - id: corriere_v3
     nom: Corriere della Sera (cronache)
     pays: IT
@@ -331,6 +334,7 @@ sources:
     poids: 1.0
     themes: [generaliste]
     url: https://xml2.corriereobjects.it/rss/cronache.xml
+    actif: false   # 25/11/2026 : flux figé depuis juin 2026
   - id: gazzetta_v2
     nom: La Gazzetta dello Sport
     pays: IT
@@ -339,6 +343,7 @@ sources:
     poids: 1.0
     themes: [sport]
     url: https://www.gazzetta.it/dynamic-feed/rss/section/last.xml
+    # contient aussi des articles hors sport : ils seront filtrés par thème (étape 4)
   - id: corrieredellosport
     nom: Corriere dello Sport
     pays: IT
@@ -347,6 +352,7 @@ sources:
     poids: 0.9
     themes: [sport]
     url: https://www.corrieredellosport.it/rss
+    actif: false   # 25/11/2026 : format non reconnu
   - id: ansa_sport
     nom: ANSA Sport
     pays: IT
