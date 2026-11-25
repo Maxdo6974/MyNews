@@ -60,7 +60,7 @@ const KEYWORDS: Record<Exclude<ThemeId, "generaliste" | "a_la_une">, Record<Sour
 const NOISE = [
   /paris sportifs?/i, /pronostic/i, /\bcotes?\b.*\bbookmaker/i, /horoscope/i, /\bcode promo\b/i, /\bbon plan/i,
   /\bmots? fl[eé]ch[eé]s\b/i, /\bsudoku\b/i, /in 100 sekunden/i, /\bgewinnspiel\b/i, /\bwordle\b/i, /\bcrossword\b/i,
-  /\boroscopo\b/i, /\bquiz\b/i, /\bavant-match, forme et face-[aà]-face\b/i,
+  /\boroscopo\b/i, /\bquiz\b/i, /\bQ&A\b/i, /\|\s*chiedi a/i, /\bcourrier des lecteurs\b/i, /\bavant-match, forme et face-[aà]-face\b/i,
 ];
 
 export function isNoise(title: string, summary = ""): boolean {

@@ -60,6 +60,7 @@ describe("thèmes et bruit", () => {
   it("écarte les contenus qui ne sont pas de l'information", () => {
     expect(isNoise("Lakers vs Celtics — Avant-match, forme et face-à-face | Paris sportifs")).toBe(true);
     expect(isNoise("Horoscope du jour")).toBe(true);
+    expect(isNoise("Liquidazione polizza | Q&A Assicurazioni | Chiedi all'esperto")).toBe(true);
     expect(isNoise("Le gouvernement présente son budget")).toBe(false);
   });
 });
