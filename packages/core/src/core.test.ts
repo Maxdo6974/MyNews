@@ -28,6 +28,10 @@ describe("analyse des flux", () => {
     const xml = `<rss><channel><item><title>M&#xE8;re &amp; enfant &#233;t&eacute;</title><link>https://ex.org/m</link></item></channel></rss>`;
     expect(parseFeed(xml)[0].title).toBe("Mère & enfant été");
   });
+  it("retire le suffixe « - Média » des titres Google News", () => {
+    const xml = `<rss><channel><item><title>Budget : le vote reporté - Le Figaro</title><link>https://news.google.com/x</link><source url="https://www.lefigaro.fr">Le Figaro</source></item></channel></rss>`;
+    expect(parseFeed(xml)[0].title).toBe("Budget : le vote reporté");
+  });
   it("lit un flux Atom", () => {
     const xml = `<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>X</title><link href="https://ex.org/x"/><updated>2026-11-25T10:00:00Z</updated></entry></feed>`;
     expect(parseFeed(xml)[0]).toMatchObject({ title: "X", link: "https://ex.org/x" });

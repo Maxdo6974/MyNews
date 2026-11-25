@@ -52,8 +52,12 @@ export function parseFeed(xml: string): ParsedFeedItem[] {
       text(it.guid);
     const rawDate = text(it.pubDate) || text(it["dc:date"]) || text(it.published) || text(it.updated);
     const d = rawDate ? new Date(rawDate) : null;
+    // Google News ajoute « - Nom du média » à la fin du titre : on le retire.
+    let title = text(it.title);
+    const via = text(it.source);
+    if (via && title.endsWith(` - ${via}`)) title = title.slice(0, -(via.length + 3)).trim();
     return {
-      title: text(it.title),
+      title,
       link,
       summary: text(it.description) || text(it.summary) || text(it.content),
       published: d && !isNaN(d.getTime()) ? d.toISOString() : null,
