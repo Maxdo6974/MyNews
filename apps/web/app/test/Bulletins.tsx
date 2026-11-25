@@ -26,7 +26,6 @@ export default function Bulletins({ themes, demo, hasKey, personas, hasVoiceKey 
   const [country, setCountry] = useState("FR");
   const [theme, setTheme] = useState("generaliste");
   const [lang, setLang] = useState("fr");
-  const [duration, setDuration] = useState("court");
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [current, setCurrent] = useState<Bulletin | null>(null);
@@ -49,7 +48,7 @@ export default function Bulletins({ themes, demo, hasKey, personas, hasVoiceKey 
   async function generate() {
     setRunning(true); setElapsed(0); setError(null); setCurrent(null); setAudio({});
     try {
-      const r = await fetch("/api/bulletins", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ country, theme, lang, duration }) });
+      const r = await fetch("/api/bulletins", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ country, theme, lang }) });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error ?? `Erreur ${r.status}`);
       setCurrent(data);
@@ -61,17 +60,18 @@ export default function Bulletins({ themes, demo, hasKey, personas, hasVoiceKey 
     }
   }
 
-  async function makeAudio(bulletinId: number, persona: string) {
+  async function makeAudio(bulletinId: number, language: string, persona: string) {
     const started = Date.now();
-    setAudio((a) => ({ ...a, [persona]: { status: "loading" } }));
+    const k = `${language}|${persona}`;
+    setAudio((a) => ({ ...a, [k]: { status: "loading" } }));
     try {
-      const r = await fetch("/api/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ bulletinId, persona }) });
+      const r = await fetch("/api/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ bulletinId, language, persona }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? `Erreur ${r.status}`);
-      setAudio((a) => ({ ...a, [persona]: { status: "ready", url: d.url, durationMs: d.durationMs, costEur: d.costEur, seconds: Math.round((Date.now() - started) / 1000) } }));
+      setAudio((a) => ({ ...a, [k]: { status: "ready", url: d.url, durationMs: d.durationMs, costEur: d.costEur, seconds: Math.round((Date.now() - started) / 1000) } }));
       loadRecent();
     } catch (e) {
-      setAudio((a) => ({ ...a, [persona]: { status: "error", error: (e as Error).message } }));
+      setAudio((a) => ({ ...a, [k]: { status: "error", error: (e as Error).message } }));
     }
   }
 
@@ -99,14 +99,13 @@ export default function Bulletins({ themes, demo, hasKey, personas, hasVoiceKey 
         <select className={sel} value={country} onChange={(e) => setCountry(e.target.value)}>{COUNTRIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select>
         <select className={sel} value={theme} onChange={(e) => setTheme(e.target.value)}>{themes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</select>
         <select className={sel} value={lang} onChange={(e) => setLang(e.target.value)}><option value="fr">Français</option><option value="en">English</option></select>
-        <select className={sel} value={duration} onChange={(e) => setDuration(e.target.value)}><option value="court">Court · 2 min</option><option value="standard">Standard · 3 min</option></select>
         <button onClick={generate} disabled={running || disabled}
           className="rounded-lg bg-accent text-white px-4 py-2 text-sm font-semibold disabled:opacity-50">
           {running ? `Génération… ${elapsed} s` : "Générer un vrai bulletin"}
         </button>
         {spent && <span className="text-sm text-ink-soft ml-auto">Dépensé aujourd'hui : {eur(spent.spentToday)} / {spent.budget.toFixed(2).replace(".", ",")} €</span>}
       </div>
-      <p className="text-xs text-ink-soft">Environ 30 à 60 secondes et 0,05 à 0,15 € par bulletin. Le lecteur public réutilise un bulletin de moins de 15 minutes s'il existe.</p>
+      <p className="text-xs text-ink-soft">Format 3 minutes. Environ 60 secondes et 0,10 à 0,20 € par bulletin ; la traduction dans l'autre langue coûte environ 0,02 €. Le lecteur public réutilise un bulletin de moins de 15 minutes s'il existe.</p>
       {error && <p className="text-sm text-accent">{error}</p>}
 
       {current && (
@@ -129,13 +128,13 @@ export default function Bulletins({ themes, demo, hasKey, personas, hasVoiceKey 
             <div className="rounded-lg border border-line p-3 space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">Audio</p>
               {!hasVoiceKey && <p className="text-sm text-accent">Clé OPENAI_API_KEY absente.</p>}
-              {personas.map((p) => {
-                const st = audio[p.id];
+              {(["fr", "en"] as const).flatMap((l) => personas.map((p) => ({ l, p }))).map(({ l, p }) => {
+                const st = audio[`${l}|${p.id}`];
                 return (
-                  <div key={p.id} className="flex flex-wrap items-center gap-3 text-sm">
-                    <button onClick={() => makeAudio(current.id, p.id)} disabled={!hasVoiceKey || st?.status === "loading"}
+                  <div key={`${l}|${p.id}`} className="flex flex-wrap items-center gap-3 text-sm">
+                    <button onClick={() => makeAudio(current.id, l, p.id)} disabled={!hasVoiceKey || st?.status === "loading"}
                       className="rounded-lg border border-ink px-3 py-1.5 font-medium disabled:opacity-50">
-                      {st?.status === "loading" ? "Enregistrement…" : `Écouter · ${p.label}`}
+                      {st?.status === "loading" ? "Préparation…" : `Écouter · ${l.toUpperCase()} · ${p.label}`}
                     </button>
                     {st?.status === "ready" && (
                       <>

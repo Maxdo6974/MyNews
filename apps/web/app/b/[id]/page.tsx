@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { COUNTRIES, PERSONAS, THEMES, getBulletin, hasDatabase } from "@flash-info/core";
+import { COUNTRIES, PERSONAS, THEMES, getBulletin, getVersion, hasDatabase, type Language } from "@flash-info/core";
 import BulletinView from "./BulletinView";
 
 export const dynamic = "force-dynamic";
@@ -18,16 +18,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: `Flash Info — ${titles}`, description: b.intro };
 }
 
-export default async function BulletinPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ voix?: string }> }) {
+export default async function BulletinPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ voix?: string; langue?: string }> }) {
   const { id } = await params;
-  const { voix } = await searchParams;
+  const { voix, langue } = await searchParams;
   const b = await load(id);
   if (!b) notFound();
+  const wanted: Language = langue === "en" || langue === "fr" ? langue : (b.langue as Language);
+  const v = await getVersion(Number(b.id), wanted).catch(() => getVersion(Number(b.id), b.langue as Language));
   return (
     <BulletinView
       bulletin={{
         bulletinId: Number(b.id), isDemo: false, voiceAvailable: Boolean(process.env.OPENAI_API_KEY),
-        intro: b.intro, outro: b.outro, chapters: b.chapters, language: b.langue, country: b.pays, theme: b.theme,
+        intro: v.intro, outro: v.outro, chapters: v.chapters, language: v.language, country: b.pays, theme: b.theme,
         createdAt: new Date(b.created_at).toISOString(),
       }}
       initialPersona={PERSONAS.some((p) => p.id === voix) ? voix! : PERSONAS[0].id}

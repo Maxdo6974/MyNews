@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useUiLang } from "../lib/i18n";
 
 export default function Header({ demo }: { demo: boolean }) {
-  const [lang, setLang, t] = useUiLang();
+  const [, , t] = useUiLang();
   const path = usePathname();
   const nav = (href: string, label: string) => (
     <Link href={href} aria-current={path === href ? "page" : undefined}
@@ -26,10 +26,6 @@ export default function Header({ demo }: { demo: boolean }) {
           <nav className="flex items-center gap-1">
             {nav("/", t.listenNav)}
             {nav("/historique", t.history)}
-            <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} aria-label={lang === "fr" ? "Switch to English" : "Passer en français"}
-              className="ml-1 rounded-full border border-line px-2.5 py-1 text-xs font-semibold text-ink-soft hover:text-ink">
-              {lang === "fr" ? "EN" : "FR"}
-            </button>
           </nav>
         </div>
       </header>

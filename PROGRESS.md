@@ -75,6 +75,15 @@
 - Appli installable (PWA) : manifeste, icônes, service worker, page hors connexion ; aucune donnée d'actualité en cache.
 - Accessibilité : lien d'évitement, focus visible, libellés ARIA, curseur clavier sur la barre de lecture, animations coupées si l'utilisateur le demande, contrastes AA.
 
+## Retours du 25/11 sur l'étape 7
+- **FR/EN = langue de l'audio, même contenu** : un bulletin est rédigé une fois, puis traduit à la demande (Claude, consignes de traduction fidèle, contrôle qualité : mêmes sujets, mêmes chiffres, aucun mot de jugement). Table `bulletin_versions` ; audio par bulletin × langue × voix. Changement de langue possible pendant l'écoute, avec reprise au même sujet. Le cache de 15 min est commun aux deux langues.
+- Interface uniquement en français (le bouton FR/EN de l'en-tête est retiré).
+- **Format unique de 3 minutes** : choix de durée retiré ; l'interrupteur de langue de l'audio prend sa place.
+- **Voix plus dynamique** : nouvelles consignes (débit soutenu, attaque nette, intonation vivante) et accélération ×1,08 sans changement de hauteur (`AUDIO_TEMPO`, entre 0,9 et 1,25) ; silences entre sujets ramenés à 0,5 s.
+- **Musique de fond « JT » sous l'introduction** : composée par le programme (ffmpeg, aucun droit d'auteur) — tic-tac en double croches, basse pulsée à 120 bpm, accords la mineur – fa – sol ; 1,8 s seule, puis à −14 dB sous la voix, puis fondu de 1,2 s.
+- L'audio existant a été supprimé par la migration 5 (il sera refait avec le nouveau montage à la première écoute).
+- Tests : 35.
+
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
   Désactivées : Le Figaro et Les Échos (HTTP 403, refusent les robots — non contourné), ancien flux Corriere et Gazzetta (figés), Le Point, Corriere v2/v3, Corriere dello Sport (en échec).

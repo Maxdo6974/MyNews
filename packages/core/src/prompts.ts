@@ -49,3 +49,19 @@ Règles d'écriture :
 - Ouverture : salutation, date et heure fournies, thème et pays, puis annonce des titres en une phrase.
 - Clôture : une phrase sobre, rappel que les sources sont disponibles dans l'application.`;
 }
+
+/** Traduction d'un script déjà vérifié : même contenu, autre langue. */
+export function TRANSLATE_SYSTEM(language: "fr" | "en"): string {
+  const lang = language === "fr" ? "français" : "anglais (britannique)";
+  return `Tu traduis en ${lang} un flash d'information radio déjà vérifié, destiné à être LU À VOIX HAUTE.
+
+${EDITORIAL_RULES}
+
+Règles de traduction :
+- Même contenu, même ordre, même nombre de sujets : n'ajoute, ne retire et ne nuance aucune information.
+- Garde exactement les chiffres, dates, noms propres et attributions (« selon … », « a déclaré … »). Les chiffres restent écrits en chiffres.
+- Les citations entre guillemets sont traduites fidèlement et restent entre guillemets.
+- Style naturel de flash radio dans la langue d'arrivée (pas de traduction mot à mot), phrases courtes.
+- Garde la date et l'heure de l'ouverture, adaptées aux usages de la langue.
+- Aucun mot de jugement ajouté.`;
+}

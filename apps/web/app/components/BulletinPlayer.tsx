@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Dict } from "../lib/i18n";
+import Flag from "./Flag";
 import Waveform from "./Waveform";
 
 export interface PlayerBulletin {
@@ -30,29 +31,59 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
   const [shared, setShared] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const real = !bulletin.isDemo && bulletin.voiceAvailable && bulletin.bulletinId;
+  // Même bulletin, en français ou en anglais : la version affichée et écoutée.
+  const [content, setContent] = useState<PlayerBulletin>(bulletin);
+  const [switching, setSwitching] = useState<"fr" | "en" | null>(null);
+  const resumeChapter = useRef<number | null>(null);
+  useEffect(() => { setContent(bulletin); }, [bulletin]);
 
   const segments = [
-    { title: bulletin.language === "fr" ? "Ouverture" : "Opening", text: bulletin.intro },
-    ...bulletin.chapters.map((c) => ({ title: c.title, text: c.text })),
-    { title: bulletin.language === "fr" ? "Clôture" : "Closing", text: bulletin.outro },
+    { title: content.language === "fr" ? "Ouverture" : "Opening", text: content.intro },
+    ...content.chapters.map((c) => ({ title: c.title, text: c.text })),
+    { title: content.language === "fr" ? "Clôture" : "Closing", text: content.outro },
   ];
 
-  // Prépare l'audio de la voix choisie (enregistrée à la première écoute, puis réutilisée).
+  // Prépare l'audio de la langue et de la voix choisies (enregistré à la première écoute, puis réutilisé).
   useEffect(() => {
     if (!real) return;
     let cancelled = false;
     setMeta(null); setError(null); setPlaying(false); setTime(0);
-    fetch("/api/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ bulletinId: bulletin.bulletinId, persona }) })
+    fetch("/api/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ bulletinId: bulletin.bulletinId, language: content.language, persona }) })
       .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.error ?? "Erreur audio"); return d; })
       .then((d) => { if (!cancelled) setMeta(d); })
       .catch((e) => { if (!cancelled) setError((e as Error).message); });
     return () => { cancelled = true; };
-  }, [real, bulletin.bulletinId, persona]);
+  }, [real, bulletin.bulletinId, persona, content.language]);
 
-  // Lecture automatique dès que l'audio est prêt (si le navigateur l'autorise).
+  // Lecture automatique dès que l'audio est prêt ; après un changement de langue, reprise au même sujet.
   useEffect(() => {
-    if (meta && autoPlay) audio.current?.play().catch(() => {});
+    if (!meta) return;
+    const idx = resumeChapter.current;
+    if (idx !== null && audio.current) {
+      resumeChapter.current = null;
+      const start = meta.chapters[Math.min(idx, meta.chapters.length - 1)]?.startMs ?? 0;
+      const a = audio.current;
+      const go = () => { a.currentTime = start / 1000; a.play().catch(() => {}); };
+      if (a.readyState >= 1) go(); else a.addEventListener("loadedmetadata", go, { once: true });
+    } else if (autoPlay) audio.current?.play().catch(() => {});
   }, [meta, autoPlay]);
+
+  async function changeLanguage(l: "fr" | "en") {
+    if (l === content.language || switching || !bulletin.bulletinId) return;
+    resumeChapter.current = time > 0 ? current : null;
+    audio.current?.pause();
+    setSwitching(l); setError(null);
+    try {
+      const r = await fetch(`/api/bulletins/${bulletin.bulletinId}/version?langue=${l}`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error ?? "Traduction impossible");
+      setContent({ ...content, ...d, language: l });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSwitching(null);
+    }
+  }
 
   const duration = (meta?.durationMs ?? 0) / 1000;
   const marks = meta?.chapters ?? [];
@@ -95,7 +126,7 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
   }
   async function share() {
     if (!bulletin.bulletinId) return;
-    const url = `${location.origin}/b/${bulletin.bulletinId}?voix=${persona}`;
+    const url = `${location.origin}/b/${bulletin.bulletinId}?langue=${content.language}&voix=${persona}`;
     try {
       if (navigator.share) await navigator.share({ title: `Flash Info · ${heading}`, url });
       else { await navigator.clipboard.writeText(url); setShared(true); setTimeout(() => setShared(false), 2000); }
@@ -106,14 +137,14 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
     if (!("speechSynthesis" in window)) return;
     if (speechSynthesis.speaking) { speechSynthesis.cancel(); setPlaying(false); return; }
     const u = new SpeechSynthesisUtterance(segments.map((s) => s.text).join(" … "));
-    u.lang = bulletin.language === "fr" ? "fr-FR" : "en-GB";
+    u.lang = content.language === "fr" ? "fr-FR" : "en-GB";
     u.onend = () => setPlaying(false);
     speechSynthesis.speak(u);
     setPlaying(true);
   }
 
   const progress = duration ? time / duration : 0;
-  const waiting = real && !meta && !error;
+  const waiting = Boolean(real && (!meta || switching) && !error);
 
   return (
     <div className="rounded-3xl border border-line bg-card overflow-hidden">
@@ -127,6 +158,17 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
       {/* Lecteur */}
       <div className="px-5 pt-7 pb-5 sm:px-8 text-center">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">{heading} · {personaLabel}</p>
+        {real && (
+          <div className="mt-4 inline-flex rounded-full border border-line p-1 bg-paper" role="group" aria-label="Langue de l'audio">
+            {(["fr", "en"] as const).map((l) => (
+              <button key={l} onClick={() => changeLanguage(l)} aria-pressed={content.language === l} disabled={Boolean(switching)}
+                className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition ${content.language === l ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>
+                {switching === l ? <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" /> : <Flag code={l === "fr" ? "FR" : "UK"} className="w-4 h-3" />}
+                {l === "fr" ? "Français" : "English"}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="mt-2 text-lg font-semibold tracking-tight min-h-7">
           {waiting ? t.recording : error ? "" : real ? segments[current]?.title : t.demo}
         </p>
@@ -170,7 +212,7 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
           <button onClick={() => jump(1)} disabled={!meta} className="rounded-full border border-line px-3.5 py-1.5 text-ink-soft hover:text-ink disabled:opacity-30">{t.nextStory} ⏭</button>
           <button onClick={cycleSpeed} disabled={!meta} aria-label={t.speed} className="rounded-full border border-line px-3.5 py-1.5 tabular text-ink-soft hover:text-ink disabled:opacity-30">{speed}×</button>
           {bulletin.bulletinId && <button onClick={share} className="rounded-full border border-line px-3.5 py-1.5 text-ink-soft hover:text-ink">{shared ? t.copied : t.share}</button>}
-          {meta && <a href={meta.url} download={`flash-info-${bulletin.bulletinId}.mp3`} className="rounded-full border border-line px-3.5 py-1.5 text-ink-soft hover:text-ink">{t.download}</a>}
+          {meta && <a href={meta.url} download={`flash-info-${bulletin.bulletinId}-${content.language}.mp3`} className="rounded-full border border-line px-3.5 py-1.5 text-ink-soft hover:text-ink">{t.download}</a>}
         </div>
       </div>
 
@@ -178,7 +220,7 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
       <div className="border-t border-line px-5 py-5 sm:px-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">{t.stories}</p>
         <ol className="mt-3 space-y-1">
-          {bulletin.chapters.map((c, i) => {
+          {content.chapters.map((c, i) => {
             const mark = marks[i + 1];
             const active = real && current === i + 1 && time > 0;
             return (
@@ -203,7 +245,7 @@ export default function BulletinPlayer({ bulletin, persona, personaLabel, headin
         {showTranscript && (
           <div className="mt-4 space-y-5">
             {segments.map((s, i) => {
-              const ch = i > 0 && i <= bulletin.chapters.length ? bulletin.chapters[i - 1] : null;
+              const ch = i > 0 && i <= content.chapters.length ? content.chapters[i - 1] : null;
               return (
                 <div key={i} className={`border-l-2 pl-4 ${real && current === i && time > 0 ? "border-accent" : "border-line"}`}>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">{s.title}</p>

@@ -6,15 +6,17 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!hasDatabase()) return new Response("Base de données non configurée", { status: 503 });
   const { id } = await params;
-  const persona = new URL(req.url).searchParams.get("voix") ?? "persona_a";
-  const file = await getAudioFile(Number(id), persona);
+  const sp = new URL(req.url).searchParams;
+  const persona = sp.get("voix") ?? "persona_a";
+  const language = sp.get("langue") === "en" ? "en" : "fr";
+  const file = await getAudioFile(Number(id), language, persona);
   if (!file) return new Response("Audio introuvable", { status: 404 });
 
   const headers: Record<string, string> = {
     "Content-Type": "audio/mpeg",
     "Accept-Ranges": "bytes",
     "Cache-Control": "private, max-age=86400",
-    "Content-Disposition": `inline; filename="flash-info-${id}.mp3"`,
+    "Content-Disposition": `inline; filename="flash-info-${id}-${language}.mp3"`,
   };
   const range = req.headers.get("range");
   const m = range?.match(/bytes=(\d*)-(\d*)/);

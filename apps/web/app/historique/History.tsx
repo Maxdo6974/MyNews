@@ -26,7 +26,7 @@ export default function History({ items, countries, themes }: { items: Item[]; c
         {shown.length === 0 && <li className="text-ink-soft">{t.historyEmpty}</li>}
         {shown.map((i) => (
           <li key={i.id}>
-            <Link href={`/b/${i.id}${i.voices.length ? `?voix=${i.voices[0]}` : ""}`}
+            <Link href={`/b/${i.id}?langue=${i.langue}`}
               className="group flex gap-4 rounded-2xl border border-line bg-card p-4 hover:border-ink-soft transition">
               <span className="mt-0.5 w-10 h-10 shrink-0 rounded-full bg-raised grid place-items-center group-hover:bg-accent transition">
                 <svg viewBox="0 0 24 24" className="w-4 h-4 ml-0.5" fill="currentColor" aria-hidden><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5Z" /></svg>

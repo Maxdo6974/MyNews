@@ -19,12 +19,12 @@ export async function startScheduler(): Promise<void> {
     log("DATABASE_URL absente : récupération des flux désactivée.");
     return;
   }
+  const applied = await migrate();
+  if (applied.length) log(`Migrations appliquées : ${applied.join(", ")}`);
   if (process.env.INGEST_ENABLED === "false") {
     log("INGEST_ENABLED=false : récupération planifiée désactivée.");
     return;
   }
-  const applied = await migrate();
-  if (applied.length) log(`Migrations appliquées : ${applied.join(", ")}`);
 
   const minutes = Math.max(5, Number(process.env.INGEST_INTERVAL_MIN ?? "20"));
   const run = async (trigger: "planifie" | "demarrage") => {

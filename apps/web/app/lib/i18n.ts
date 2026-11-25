@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 /** Langue de l'interface (indépendante de la langue du podcast). */
 export type UiLang = "fr" | "en";
 
 const DICT = {
   fr: {
     tagline: "L'actualité, rien que les faits.",
-    subtitle: "Un flash audio de 2 à 3 minutes, construit uniquement à partir d'informations confirmées par plusieurs rédactions indépendantes.",
+    subtitle: "Un flash audio de 3 minutes, construit uniquement à partir d'informations confirmées par plusieurs rédactions indépendantes.",
     edition: { matin: "Édition du matin", midi: "Édition de midi", soir: "Édition du soir", nuit: "Édition de la nuit" },
-    country: "Pays", theme: "Thème", podcastLang: "Langue du flash", duration: "Durée", voice: "Voix",
+    country: "Pays", theme: "Thème", podcastLang: "Langue de l'audio", duration: "Durée", voice: "Voix",
+    langHint: "Même contenu en français ou en anglais : vous pouvez changer de langue pendant l'écoute.",
     short: "2 min", standard: "3 min",
     listen: "Écouter le flash", play: "Lecture", pause: "Pause",
     preparing: ["Lecture des dernières dépêches…", "Recoupement des sources…", "Vérification des faits…", "Rédaction du flash…", "Contrôle qualité…", "Presque prêt…"],
@@ -29,9 +28,10 @@ const DICT = {
   },
   en: {
     tagline: "The news. Nothing but the facts.",
-    subtitle: "A 2 to 3-minute audio briefing, built only from information confirmed by several independent newsrooms.",
+    subtitle: "A 3-minute audio briefing, built only from information confirmed by several independent newsrooms.",
     edition: { matin: "Morning edition", midi: "Midday edition", soir: "Evening edition", nuit: "Night edition" },
-    country: "Country", theme: "Topic", podcastLang: "Briefing language", duration: "Length", voice: "Voice",
+    country: "Country", theme: "Topic", podcastLang: "Audio language", duration: "Length", voice: "Voice",
+    langHint: "Same content in French or English: you can switch language while listening.",
     short: "2 min", standard: "3 min",
     listen: "Play the briefing", play: "Play", pause: "Pause",
     preparing: ["Reading the latest reports…", "Cross-checking sources…", "Verifying facts…", "Writing the briefing…", "Quality check…", "Almost ready…"],
@@ -52,29 +52,12 @@ const DICT = {
 
 export type Dict = (typeof DICT)[UiLang];
 
-const KEY = "flash-info:ui-lang";
-const EVENT = "flash-info:ui-lang";
-
+/**
+ * L'interface est en français. Le choix FR/EN concerne la langue de l'audio (même contenu),
+ * pas l'interface : la traduction anglaise de l'interface est gardée pour plus tard.
+ */
 export function useUiLang(): [UiLang, (l: UiLang) => void, Dict] {
-  const [lang, setLang] = useState<UiLang>("fr");
-  useEffect(() => {
-    const read = () => {
-      try {
-        const saved = localStorage.getItem(KEY) as UiLang | null;
-        setLang(saved ?? (navigator.language.startsWith("fr") ? "fr" : "en"));
-      } catch {}
-    };
-    read();
-    window.addEventListener(EVENT, read);
-    return () => window.removeEventListener(EVENT, read);
-  }, []);
-  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
-  const set = (l: UiLang) => {
-    try { localStorage.setItem(KEY, l); } catch {}
-    setLang(l);
-    window.dispatchEvent(new Event(EVENT));
-  };
-  return [lang, set, DICT[lang]];
+  return ["fr", () => {}, DICT.fr];
 }
 
 /** Édition selon l'heure locale. */

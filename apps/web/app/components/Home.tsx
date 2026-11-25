@@ -19,7 +19,6 @@ export default function Home({ countries, themes, personas, featured }: Props) {
   const [country, setCountry] = useState("FR");
   const [theme, setTheme] = useState("generaliste");
   const [lang, setLang] = useState<"fr" | "en">("fr");
-  const [duration, setDuration] = useState<"court" | "standard">("court");
   const [persona, setPersona] = useState(personas[0].id);
   const [bulletin, setBulletin] = useState<(PlayerBulletin & { country: string; theme: string }) | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,13 +33,12 @@ export default function Home({ countries, themes, personas, featured }: Props) {
       if (p.country) setCountry(p.country);
       if (p.theme) setTheme(p.theme);
       if (p.lang) setLang(p.lang);
-      if (p.duration) setDuration(p.duration);
       if (p.persona) setPersona(p.persona);
     } catch {}
   }, []);
   useEffect(() => {
-    try { localStorage.setItem(PREFS, JSON.stringify({ country, theme, lang, duration, persona })); } catch {}
-  }, [country, theme, lang, duration, persona]);
+    try { localStorage.setItem(PREFS, JSON.stringify({ country, theme, lang, persona })); } catch {}
+  }, [country, theme, lang, persona]);
   useEffect(() => {
     if (!loading) return;
     const id = setInterval(() => setStep((s) => Math.min(s + 1, t.preparing.length - 1)), 9000);
@@ -57,7 +55,7 @@ export default function Home({ countries, themes, personas, featured }: Props) {
   async function listen() {
     setLoading(true); setStep(0); setError(null); setBulletin(null);
     try {
-      const q = new URLSearchParams({ country, theme, lang, duration });
+      const q = new URLSearchParams({ country, theme, lang });
       const r = await fetch(`/api/bulletin?${q}`);
       const d = await r.json();
       if (!r.ok) throw new Error(d.error ?? "Erreur");
@@ -113,25 +111,17 @@ export default function Home({ countries, themes, personas, featured }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className={label}>{t.podcastLang}</p>
-            <div className="mt-2.5 flex rounded-full border border-line p-1 bg-card">
-              {(["fr", "en"] as const).map((l) => (
-                <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l}
-                  className={`flex-1 rounded-full py-1.5 text-sm font-medium ${lang === l ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>{l === "fr" ? "Français" : "English"}</button>
-              ))}
-            </div>
+        <div>
+          <p className={label}>{t.podcastLang}</p>
+          <div className="mt-2.5 grid grid-cols-2 rounded-2xl border border-line p-1 bg-card" role="group" aria-label={t.podcastLang}>
+            {(["fr", "en"] as const).map((l) => (
+              <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l}
+                className={`flex items-center justify-center gap-2.5 rounded-xl py-2.5 text-sm font-medium ${lang === l ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>
+                <Flag code={l === "fr" ? "FR" : "UK"} /> {l === "fr" ? "Français" : "English"}
+              </button>
+            ))}
           </div>
-          <div>
-            <p className={label}>{t.duration}</p>
-            <div className="mt-2.5 flex rounded-full border border-line p-1 bg-card">
-              {(["court", "standard"] as const).map((d) => (
-                <button key={d} onClick={() => setDuration(d)} aria-pressed={duration === d}
-                  className={`flex-1 rounded-full py-1.5 text-sm font-medium tabular ${duration === d ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}>{d === "court" ? t.short : t.standard}</button>
-              ))}
-            </div>
-          </div>
+          <p className="mt-2 text-xs text-ink-soft">{t.langHint}</p>
         </div>
 
         <div>

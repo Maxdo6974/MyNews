@@ -71,23 +71,23 @@ export const PERSONAS: Persona[] = [
   {
     id: "persona_a",
     nomAffiche: "Le Présentateur",
-    description: "Voix grave et posée, ton de JT classique",
-    descriptionEn: "Deep, measured voice, classic news anchor",
+    description: "Voix grave et assurée, ton de flash radio",
+    descriptionEn: "Deep, confident voice, radio news style",
     openaiVoice: "cedar",
     instructions: {
-      fr: "Présentateur de journal télévisé français expérimenté. Voix grave, débit posé et régulier, autorité calme, articulation nette. Ton neutre et sobre. Courte pause entre chaque sujet.",
-      en: "Experienced television news anchor. Deep voice, calm and measured pace, quiet authority, crisp diction. Neutral, sober tone. Short pause between stories.",
+      fr: "Présentateur de flash info à la radio, à l'antenne en direct. Débit soutenu et rythmé, énergie maîtrisée, voix grave et assurée. Attaque nette au début de chaque phrase, intonation vivante qui accompagne l'information, jamais monotone ni traînante. Ton neutre et factuel. Très courte respiration entre deux sujets.",
+      en: "Live radio news anchor reading a fast-paced bulletin. Brisk, rhythmic delivery with controlled energy, deep and confident voice. Crisp start to each sentence, lively intonation that follows the news, never monotone or dragging. Neutral, factual tone. Very short breath between stories.",
     },
   },
   {
     id: "persona_b",
     nomAffiche: "La Présentatrice",
-    description: "Clear, elegant voice, evening news style",
-    descriptionEn: "Clear, elegant voice, evening news style",
+    description: "Voix claire et vive, ton de flash radio",
+    descriptionEn: "Clear, lively voice, radio news style",
     openaiVoice: "marin",
     instructions: {
-      fr: "Présentatrice de journal télévisé du soir. Voix claire et chaleureuse, élégante, articulation impeccable, débit fluide. Ton neutre et sobre. Courte pause entre chaque sujet.",
-      en: "Evening television news anchor. Clear, warm and elegant voice, impeccable diction, smooth pace. Neutral, sober tone. Short pause between stories.",
+      fr: "Présentatrice de flash info à la radio, à l'antenne en direct. Débit soutenu et rythmé, voix claire, vive et chaleureuse, articulation impeccable. Attaque nette au début de chaque phrase, intonation vivante, jamais monotone ni traînante. Ton neutre et factuel. Très courte respiration entre deux sujets.",
+      en: "Live radio news presenter reading a fast-paced bulletin. Brisk, rhythmic delivery, clear, bright and warm voice, impeccable diction. Crisp start to each sentence, lively intonation, never monotone or dragging. Neutral, factual tone. Very short breath between stories.",
     },
   },
 ];

@@ -165,6 +165,41 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       );
     `,
   },
+  {
+    id: 5,
+    name: "versions linguistiques d'un bulletin, audio par langue",
+    sql: `
+      CREATE TABLE bulletin_versions (
+        bulletin_id  bigint NOT NULL REFERENCES bulletins(id) ON DELETE CASCADE,
+        langue       text NOT NULL,
+        source       text NOT NULL,            -- original | traduction
+        intro        text NOT NULL,
+        chapters     jsonb NOT NULL,
+        outro        text NOT NULL,
+        qc           jsonb NOT NULL DEFAULT '{}',
+        created_at   timestamptz NOT NULL DEFAULT now(),
+        PRIMARY KEY (bulletin_id, langue)
+      );
+      INSERT INTO bulletin_versions (bulletin_id, langue, source, intro, chapters, outro, qc, created_at)
+        SELECT id, langue, 'original', intro, chapters, outro, qc, created_at FROM bulletins WHERE status = 'pret';
+      -- L'audio dépend désormais de la langue (et du nouveau montage) : l'ancien est supprimé.
+      DROP TABLE bulletin_audio;
+      CREATE TABLE bulletin_audio (
+        bulletin_id  bigint NOT NULL REFERENCES bulletins(id) ON DELETE CASCADE,
+        langue       text NOT NULL,
+        persona      text NOT NULL,
+        provider     text NOT NULL,
+        voice        text NOT NULL,
+        mp3          bytea NOT NULL,
+        bytes        integer NOT NULL,
+        duration_ms  integer NOT NULL,
+        chapters     jsonb NOT NULL,
+        cost_eur     real NOT NULL DEFAULT 0,
+        created_at   timestamptz NOT NULL DEFAULT now(),
+        PRIMARY KEY (bulletin_id, langue, persona)
+      );
+    `,
+  },
 ];
 
 const MIGRATION_LOCK = 72_000_001;

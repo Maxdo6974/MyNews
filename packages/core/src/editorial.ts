@@ -2,7 +2,7 @@ import { COUNTRIES, FEATURED_TOPICS, THEMES } from "./config";
 import { db } from "./db";
 import { listEvents } from "./events";
 import { callClaude, type LlmFn } from "./llm";
-import { EXTRACT_SYSTEM, VERIFY_SYSTEM, scriptSystem } from "./prompts";
+import { EXTRACT_SYSTEM, TRANSLATE_SYSTEM, VERIFY_SYSTEM, scriptSystem } from "./prompts";
 import { runQc, wordCountOf, type QcReport } from "./qc";
 import { TARGET_WORDS } from "./config";
 import type { CountryCode, Duration, Language, ThemeId } from "./types";
@@ -280,6 +280,10 @@ ${factsForScript}`;
     });
     if (!qc!.ok) throw new Error(`Contrôle qualité non satisfait après ${MAX_REWRITES + 1} essais : ${qc!.issues.join(" ")}`);
     result.status = "pret";
+    // Version d'origine : les traductions seront faites à partir d'elle, à la demande.
+    await sql`
+      INSERT INTO bulletin_versions (bulletin_id, langue, source, intro, chapters, outro, qc)
+      VALUES (${bulletinId}, ${opts.language}, 'original', ${result.intro}, ${sql.json(result.chapters as never)}, ${result.outro}, ${sql.json(result.qc as never)})`;
   } catch (e) {
     result.error = (e as Error).message;
   }
@@ -307,10 +311,13 @@ export async function recentBulletins(limit = 15) {
     FROM bulletins ORDER BY id DESC LIMIT ${limit}`;
 }
 
-/** Bulletin prêt et récent pour la même combinaison (cache), sinon null. */
-export async function findFreshBulletin(o: { pays: string; theme: string; language: string; duration: string }, maxAgeMin = 15) {
+/**
+ * Bulletin prêt et récent pour le même pays, thème et durée (cache), quelle que soit sa langue :
+ * le même contenu est ensuite proposé en français ou en anglais (traduction).
+ */
+export async function findFreshBulletin(o: { pays: string; theme: string; duration: string }, maxAgeMin = 15) {
   const [b] = await db()`
-    SELECT * FROM bulletins WHERE pays = ${o.pays} AND theme = ${o.theme} AND langue = ${o.language} AND duree = ${o.duration}
+    SELECT * FROM bulletins WHERE pays = ${o.pays} AND theme = ${o.theme} AND duree = ${o.duration}
       AND status = 'pret' AND created_at > now() - make_interval(mins => ${maxAgeMin})
     ORDER BY id DESC LIMIT 1`;
   return b ?? null;
@@ -319,7 +326,7 @@ export async function findFreshBulletin(o: { pays: string; theme: string; langua
 const pending = new Map<string, Promise<BulletinResult>>();
 /** Évite de générer deux fois en parallèle le même bulletin. */
 export function generateOnce(opts: GenerateOptions): Promise<BulletinResult> {
-  const key = `${opts.pays}|${opts.theme}|${opts.language}|${opts.duration}`;
+  const key = `${opts.pays}|${opts.theme}|${opts.duration}`;
   if (!pending.has(key)) pending.set(key, generateBulletin(opts).finally(() => pending.delete(key)));
   return pending.get(key)!;
 }
@@ -334,4 +341,79 @@ export async function listPublished(opts: { pays?: string; limit?: number } = {}
     FROM bulletins b
     WHERE b.status = 'pret' AND (${opts.pays ?? null}::text IS NULL OR b.pays = ${opts.pays ?? null})
     ORDER BY b.id DESC LIMIT ${limit}`;
+}
+
+// ───────── Versions linguistiques (même contenu, autre langue) ─────────
+export interface BulletinVersion {
+  bulletinId: number;
+  language: Language;
+  source: "original" | "traduction";
+  intro: string;
+  chapters: { title: string; text: string; fact_ids: string[]; sources: { nom: string; title: string; url: string }[] }[];
+  outro: string;
+}
+
+function rowToVersion(r: Record<string, unknown>): BulletinVersion {
+  return { bulletinId: Number(r.bulletin_id), language: r.langue as Language, source: r.source as BulletinVersion["source"], intro: r.intro as string, chapters: r.chapters as BulletinVersion["chapters"], outro: r.outro as string };
+}
+
+async function translateVersion(bulletinId: number, language: Language, llm: LlmFn): Promise<BulletinVersion> {
+  const sql = db();
+  const [b] = await sql`SELECT id, status, duree, facts FROM bulletins WHERE id = ${bulletinId}`;
+  if (!b || b.status !== "pret") throw new Error("Bulletin introuvable ou non publié.");
+  const [orig] = await sql`SELECT * FROM bulletin_versions WHERE bulletin_id = ${bulletinId} AND source = 'original'`;
+  if (!orig) throw new Error("Version d'origine introuvable.");
+  const original = rowToVersion(orig);
+  const facts = new Map((b.facts as FactRecord[]).filter((f) => f.status === "retenu").map((f) => [f.fact_id, f.statement]));
+  const payload = { intro: original.intro, chapters: original.chapters.map((c) => ({ title: c.title, text: c.text, fact_ids: c.fact_ids })), outro: original.outro };
+
+  let feedback = "";
+  let last: { intro: string; chapters: { title: string; text: string; fact_ids: string[] }[]; outro: string } | null = null;
+  let qc: QcReport | null = null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    last = await llm({
+      purpose: `traduction ${language}`, bulletinId, maxTokens: 6000, system: TRANSLATE_SYSTEM(language), schema: TRANSLATE_SCHEMA,
+      user: `${feedback ? `TA TRADUCTION PRÉCÉDENTE A ÉTÉ REFUSÉE :\n${feedback}\n\n` : ""}Script à traduire (JSON) :\n${JSON.stringify(payload)}`,
+    });
+    // Mêmes sujets, mêmes faits, dans le même ordre.
+    const sameShape = last!.chapters.length === original.chapters.length;
+    qc = runQc({ language, duration: b.duree as Duration, ...last!, chapters: last!.chapters.map((c, i) => ({ ...c, fact_ids: original.chapters[i]?.fact_ids ?? [] })), facts, sourceTexts: [] });
+    // La longueur suit l'original : elle n'est pas un motif de refus pour une traduction.
+    const issues = qc.issues.filter((i) => !i.startsWith("Trop"));
+    if (!sameShape) issues.push("Le nombre de sujets diffère de l'original.");
+    if (!issues.length) { qc = { ...qc, ok: true, issues: [] }; break; }
+    feedback = issues.map((i) => `- ${i}`).join("\n");
+    qc = { ...qc, ok: false, issues };
+  }
+  if (!qc!.ok) throw new Error(`Traduction refusée par le contrôle qualité : ${qc!.issues.join(" ")}`);
+
+  const version: BulletinVersion = {
+    bulletinId, language, source: "traduction", intro: last!.intro, outro: last!.outro,
+    chapters: original.chapters.map((c, i) => ({ ...c, title: last!.chapters[i].title, text: last!.chapters[i].text })),
+  };
+  await sql`
+    INSERT INTO bulletin_versions (bulletin_id, langue, source, intro, chapters, outro, qc)
+    VALUES (${bulletinId}, ${language}, 'traduction', ${version.intro}, ${sql.json(version.chapters as never)}, ${version.outro}, ${sql.json(qc as never)})
+    ON CONFLICT (bulletin_id, langue) DO NOTHING`;
+  return version;
+}
+
+const TRANSLATE_SCHEMA = {
+  type: "object",
+  properties: {
+    intro: { type: "string" },
+    chapters: { type: "array", items: { type: "object", properties: { title: { type: "string" }, text: { type: "string" } }, required: ["title", "text"] } },
+    outro: { type: "string" },
+  },
+  required: ["intro", "chapters", "outro"],
+};
+
+const pendingVersions = new Map<string, Promise<BulletinVersion>>();
+/** Version du bulletin dans la langue demandée : existante, ou traduite une seule fois à partir de l'original. */
+export async function getVersion(bulletinId: number, language: Language, llm: LlmFn = callClaude): Promise<BulletinVersion> {
+  const [v] = await db()`SELECT * FROM bulletin_versions WHERE bulletin_id = ${bulletinId} AND langue = ${language}`;
+  if (v) return rowToVersion(v);
+  const key = `${bulletinId}|${language}`;
+  if (!pendingVersions.has(key)) pendingVersions.set(key, translateVersion(bulletinId, language, llm).finally(() => pendingVersions.delete(key)));
+  return pendingVersions.get(key)!;
 }
