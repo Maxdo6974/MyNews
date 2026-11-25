@@ -1,4 +1,4 @@
-import { THEMES, dailyBudget, hasDatabase, isDemoMode, loadSources, spentToday } from "@flash-info/core";
+import { PERSONAS, THEMES, dailyBudget, hasDatabase, isDemoMode, loadSources, spentToday } from "@flash-info/core";
 import Bulletins from "./Bulletins";
 import Events from "./Events";
 import Ingestion from "./Ingestion";
@@ -6,8 +6,11 @@ import SourcesHealth from "./SourcesHealth";
 
 export const dynamic = "force-dynamic";
 
-const STEPS = [
-  { n: 6, title: "Générer l'audio", desc: "Voix OpenAI et post-production, lecteur intégré." },
+const STEPS: { n: number; title: string; desc: string }[] = [
+  { n: 7, title: "Interface complète", desc: "Design définitif, historique des éditions, partage, application installable (PWA)." },
+  { n: 8, title: "Éditions planifiées", desc: "Bulletins préparés matin, midi et soir pour chaque pays, thème et langue." },
+  { n: 9, title: "Comptes et administration", desc: "Préférences, flux podcast personnel, back-office, signalements." },
+  { n: 10, title: "Mise en production", desc: "Tests de bout en bout, mentions légales, environnement de production." },
 ];
 
 export default async function TestPage() {
@@ -46,7 +49,8 @@ export default async function TestPage() {
           Extraction des faits, vérification indépendante, rédaction, puis contrôle qualité par le code. Chaque fait rejeté est affiché avec sa raison.
         </p>
         {hasDatabase() ? (
-          <Bulletins themes={THEMES.map((t) => ({ id: t.id, label: t.label.fr }))} demo={demo} hasKey={keys.anthropic} />
+          <Bulletins themes={THEMES.map((t) => ({ id: t.id, label: t.label.fr }))} demo={demo} hasKey={keys.anthropic}
+            personas={PERSONAS.map((p) => ({ id: p.id, label: p.nomAffiche }))} hasVoiceKey={keys.openai} />
         ) : (
           <p className="mt-3 text-sm text-accent">Base de données non configurée.</p>
         )}
@@ -86,7 +90,7 @@ export default async function TestPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold">Étapes du pipeline</h2>
+        <h2 className="text-lg font-semibold">Étapes suivantes</h2>
         <ul className="mt-3 divide-y divide-line rounded-xl border border-line bg-card">
           {STEPS.map((s) => (
             <li key={s.title} className="p-4 flex items-start gap-4">

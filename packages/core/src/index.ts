@@ -11,6 +11,8 @@ export * from "./events";
 export * from "./llm";
 export * from "./qc";
 export * from "./editorial";
+export * from "./tts";
+export * from "./audio";
 export * from "./scheduler";
 
 export const isDemoMode = () => process.env.DEMO_MODE !== "false";

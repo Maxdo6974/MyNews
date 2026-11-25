@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Bulletin } from "@flash-info/core";
+import type { Bulletin as CoreBulletin } from "@flash-info/core";
+import AudioPlayer from "./AudioPlayer";
+
+type Bulletin = CoreBulletin & { bulletinId?: number; voiceAvailable?: boolean };
 
 type Option = { id: string; label: string };
 interface Props {
@@ -169,6 +172,16 @@ export default function Player({ countries, themes: baseThemes, personas, featur
 
       {bulletin && (
         <section className="rounded-2xl border border-line bg-card p-5 sm:p-6">
+          {!bulletin.isDemo && bulletin.voiceAvailable && bulletin.bulletinId ? (
+            <AudioPlayer
+              bulletinId={bulletin.bulletinId}
+              persona={persona}
+              personaLabel={personas.find((p) => p.id === persona)?.label ?? ""}
+              heading={`${countries.find((c) => c.id === bulletin.country)?.label} · ${themes.find((t) => t.id === bulletin.theme)?.label}`}
+              transcript={segments.map((x) => x.text)}
+            />
+          ) : (
+            <>
           <div className="flex items-center gap-4">
             <button onClick={togglePlay} disabled={!ttsAvailable}
               aria-label={playing && !paused ? "Pause" : "Lecture"}
@@ -201,7 +214,7 @@ export default function Player({ countries, themes: baseThemes, personas, featur
 
           <p className="mt-4 text-xs text-ink-soft rounded-md bg-paper px-3 py-2">
             {ttsAvailable
-              ? "Aperçu lu par la voix de votre navigateur. Les voix réalistes (OpenAI) arrivent à l'étape 6."
+              ? "Aperçu lu par la voix de votre navigateur. Les voix réalistes sont utilisées pour les vrais bulletins."
               : "Votre navigateur ne permet pas la lecture vocale. La transcription reste disponible."}
           </p>
 
@@ -215,6 +228,9 @@ export default function Player({ countries, themes: baseThemes, personas, featur
               </li>
             ))}
           </ol>
+
+            </>
+          )}
 
           <details className="mt-6 border-t border-line pt-4 text-sm">
             <summary className="cursor-pointer font-medium">Sources</summary>

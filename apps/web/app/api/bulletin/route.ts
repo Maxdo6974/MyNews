@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
   if (b.status !== "pret") return NextResponse.json({ error: b.error ?? "Génération impossible." }, { status: 422 });
   return NextResponse.json({
-    id: `b${b.id}`, country, theme, language, duration, edition: "a_la_demande", createdAt: b.created,
+    id: `b${b.id}`, bulletinId: b.id, voiceAvailable: Boolean(process.env.OPENAI_API_KEY), country, theme, language, duration, edition: "a_la_demande", createdAt: b.created,
     isDemo: false, intro: b.intro, chapters: b.chapters, outro: b.outro,
   });
 }

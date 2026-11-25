@@ -19,7 +19,10 @@ const COUNTRIES: Option[] = [{ id: "FR", label: "France" }, { id: "IT", label: "
 const STAGES: Record<string, string> = { extraction: "Extraction", corroboration: "Corroboration", verification: "Vérification" };
 const eur = (n: number) => `${n.toFixed(3).replace(".", ",")} €`;
 
-export default function Bulletins({ themes, demo, hasKey }: { themes: Option[]; demo: boolean; hasKey: boolean }) {
+type AudioState = { status: "loading" | "ready" | "error"; url?: string; durationMs?: number; costEur?: number; error?: string; seconds?: number };
+
+export default function Bulletins({ themes, demo, hasKey, personas, hasVoiceKey }: { themes: Option[]; demo: boolean; hasKey: boolean; personas: Option[]; hasVoiceKey: boolean }) {
+  const [audio, setAudio] = useState<Record<string, AudioState>>({});
   const [country, setCountry] = useState("FR");
   const [theme, setTheme] = useState("generaliste");
   const [lang, setLang] = useState("fr");
@@ -44,7 +47,7 @@ export default function Bulletins({ themes, demo, hasKey }: { themes: Option[]; 
   }, [running]);
 
   async function generate() {
-    setRunning(true); setElapsed(0); setError(null); setCurrent(null);
+    setRunning(true); setElapsed(0); setError(null); setCurrent(null); setAudio({});
     try {
       const r = await fetch("/api/bulletins", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ country, theme, lang, duration }) });
       const data = await r.json();
@@ -58,7 +61,22 @@ export default function Bulletins({ themes, demo, hasKey }: { themes: Option[]; 
     }
   }
 
+  async function makeAudio(bulletinId: number, persona: string) {
+    const started = Date.now();
+    setAudio((a) => ({ ...a, [persona]: { status: "loading" } }));
+    try {
+      const r = await fetch("/api/audio", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ bulletinId, persona }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error ?? `Erreur ${r.status}`);
+      setAudio((a) => ({ ...a, [persona]: { status: "ready", url: d.url, durationMs: d.durationMs, costEur: d.costEur, seconds: Math.round((Date.now() - started) / 1000) } }));
+      loadRecent();
+    } catch (e) {
+      setAudio((a) => ({ ...a, [persona]: { status: "error", error: (e as Error).message } }));
+    }
+  }
+
   async function open(id: number) {
+    setAudio({});
     const b = await fetch(`/api/bulletins/${id}`).then((x) => x.json());
     setCurrent(b);
     window.scrollTo({ top: (document.getElementById("bulletin-detail")?.offsetTop ?? 0) - 20, behavior: "smooth" });
@@ -105,6 +123,31 @@ export default function Bulletins({ themes, demo, hasKey }: { themes: Option[]; 
           {current.error && <p className="text-sm text-accent">{current.error}</p>}
           {current.qc?.issues?.length > 0 && (
             <ul className="text-sm text-accent list-disc list-inside">{current.qc.issues.map((i) => <li key={i}>{i}</li>)}</ul>
+          )}
+
+          {current.status === "pret" && (
+            <div className="rounded-lg border border-line p-3 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">Audio</p>
+              {!hasVoiceKey && <p className="text-sm text-accent">Clé OPENAI_API_KEY absente.</p>}
+              {personas.map((p) => {
+                const st = audio[p.id];
+                return (
+                  <div key={p.id} className="flex flex-wrap items-center gap-3 text-sm">
+                    <button onClick={() => makeAudio(current.id, p.id)} disabled={!hasVoiceKey || st?.status === "loading"}
+                      className="rounded-lg border border-ink px-3 py-1.5 font-medium disabled:opacity-50">
+                      {st?.status === "loading" ? "Enregistrement…" : `Écouter · ${p.label}`}
+                    </button>
+                    {st?.status === "ready" && (
+                      <>
+                        <audio controls src={st.url} className="h-9" />
+                        <span className="text-ink-soft">{Math.round((st.durationMs ?? 0) / 1000)} s d'audio · {eur(st.costEur ?? 0)} · {st.seconds} s</span>
+                      </>
+                    )}
+                    {st?.status === "error" && <span className="text-accent">{st.error}</span>}
+                  </div>
+                );
+              })}
+            </div>
           )}
 
           {current.intro && (

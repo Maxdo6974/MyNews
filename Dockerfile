@@ -13,6 +13,8 @@ RUN npm run build
 FROM node:22-slim
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+# ffmpeg : montage et normalisation de l'audio des bulletins
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app /app
 EXPOSE 3000
 CMD ["npm", "start"]

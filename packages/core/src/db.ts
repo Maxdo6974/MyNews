@@ -146,6 +146,25 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       CREATE INDEX cost_log_at ON cost_log (at);
     `,
   },
+  {
+    id: 4,
+    name: "bulletin_audio",
+    sql: `
+      CREATE TABLE bulletin_audio (
+        bulletin_id  bigint NOT NULL REFERENCES bulletins(id) ON DELETE CASCADE,
+        persona      text NOT NULL,
+        provider     text NOT NULL,
+        voice        text NOT NULL,
+        mp3          bytea NOT NULL,
+        bytes        integer NOT NULL,
+        duration_ms  integer NOT NULL,
+        chapters     jsonb NOT NULL,
+        cost_eur     real NOT NULL DEFAULT 0,
+        created_at   timestamptz NOT NULL DEFAULT now(),
+        PRIMARY KEY (bulletin_id, persona)
+      );
+    `,
+  },
 ];
 
 const MIGRATION_LOCK = 72_000_001;

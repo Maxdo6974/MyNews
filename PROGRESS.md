@@ -7,7 +7,7 @@
 | 3. Ingestion des flux + base de données | ✅ 25/11/2026 |
 | 4. Regroupement et classement | ✅ 25/11/2026 |
 | 5. Faits, vérification, script, contrôle qualité | ✅ 25/11/2026 |
-| 6. Voix OpenAI et post-production audio | à faire |
+| 6. Voix OpenAI et post-production audio | ✅ 25/11/2026 |
 | 7. Interface complète et lecteur audio | à faire |
 | 8. Éditions planifiées et génération à la demande | à faire |
 | 9. Comptes, flux RSS personnel, admin, signalements | à faire |
@@ -55,6 +55,16 @@
 - Premier bulletin réel (25/11/2026, n° 3, France, généraliste, court) : 3 sujets (BYD à Hambach, saisine de l'IGJ par G. Darmanin, grève Eurostar), 264 mots ≈ 1 min 50, 2 rédactions, 0,14 €, 62 s ; 33 faits extraits, 5 rejetés par le vérificateur (dates déduites, faits non soutenus par tous les articles cités).
 - Corrections après les premiers essais réels : sorties structurées `output_config.format` (l'outil forcé n'est pas accepté par Sonnet 5.5), limites de longueur relevées.
 
+## Étape 6 — contenu
+- Synthèse vocale derrière une interface `TtsProvider` (changement de fournisseur sans toucher au reste).
+- Fournisseur actuel : OpenAI `gpt-4o-mini-tts` (`/v1/audio/speech`), voix `cedar` (Le Présentateur) et `marin` (La Présentatrice), recommandées par OpenAI pour la meilleure qualité ; ton piloté par les instructions de chaque voix (FR/EN).
+- Montage ffmpeg : une prise par partie (ouverture, sujets, clôture), 0,7 s de silence entre les parties, volume normalisé à −16 LUFS, MP3 128 kbit/s ; début de chaque chapitre calculé.
+- Stockage de l'audio en base (une fois par bulletin et par voix), purge après 7 jours ; lecture avec requêtes partielles (avance rapide, Safari).
+- Coût de la voix journalisé (estimation 0,02 €/min, réglable par `OPENAI_TTS_EUR_PER_MIN`) et soumis au plafond quotidien.
+- Lecteur : lecture/pause, ±15 s, sujet suivant, vitesse, barre avec repères de chapitres, transcription cliquable et surlignée, téléchargement MP3, commandes de l'écran verrouillé (Media Session).
+- Page /test : écoute de chaque bulletin avec les deux voix, durée, coût, temps de génération.
+- Tests : 31 (dont montage audio réel avec ffmpeg et circuit complet avec voix simulée).
+
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
   Désactivées : Le Figaro et Les Échos (HTTP 403, refusent les robots — non contourné), ancien flux Corriere et Gazzetta (figés), Le Point, Corriere v2/v3, Corriere dello Sport (en échec).
@@ -64,6 +74,8 @@
 - La récupération tourne dans le même service que le site (plus simple) ; le worker séparé viendra à l'étape 8, quand les tâches longues (IA, voix) arriveront.
 - Railway ne redéploie pas automatiquement à chaque envoi sur GitHub : redéploiement lancé à la main (palette Railway → « Deploy latest commit »).
 - L'équilibre politique (règle 4) est demandé à l'IA et contrôlé par le vérificateur, mais pas encore mesuré par le code.
+- **Échéance : OpenAI arrête `gpt-4o-mini-tts`, `tts-1` et `tts-1-hd` le 6 janvier 2027** ; remplaçant recommandé par OpenAI : `gpt-realtime-2.1-mini` (API Realtime). Choix du remplaçant à faire avant cette date (Realtime ou ElevenLabs) ; seul un nouveau `TtsProvider` est à écrire.
+- Le prix de `gpt-4o-mini-tts` n'est plus publié sur la page tarifs d'OpenAI : le coût de la voix est une estimation.
 - Les thèmes par mots-clés font quelques erreurs (ex. un sujet budgétaire classé « International ») ; l'étape 5 (IA) pourra les corriger.
 - Deux médias reprenant la même dépêche d'agence (AFP, dpa, ANSA…) comptent comme deux confirmations ; à traiter à l'étape 5.
 - Un même débat peut être découpé en 2 ou 3 événements proches ; l'étape 5 pourra les fusionner.
