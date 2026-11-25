@@ -51,7 +51,9 @@
 - Coûts journalisés par appel ; plafond quotidien (`DAILY_BUDGET_EUR`, 2 € par défaut) vérifié avant chaque appel.
 - Cache de 15 min par combinaison ; une seule génération simultanée par combinaison.
 - Lecteur : vrais bulletins en mode réel, fiche sources par sujet. Page /test : génération, script, faits retenus/rejetés et raisons, coût, historique.
-- Tests : 27 (dont circuit complet avec IA simulée et plafond de dépenses).
+- Tests : 28 (dont circuit complet avec IA simulée et plafond de dépenses).
+- Premier bulletin réel (25/11/2026, n° 3, France, généraliste, court) : 3 sujets (BYD à Hambach, saisine de l'IGJ par G. Darmanin, grève Eurostar), 264 mots ≈ 1 min 50, 2 rédactions, 0,14 €, 62 s ; 33 faits extraits, 5 rejetés par le vérificateur (dates déduites, faits non soutenus par tous les articles cités).
+- Corrections après les premiers essais réels : sorties structurées `output_config.format` (l'outil forcé n'est pas accepté par Sonnet 5.5), limites de longueur relevées.
 
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
