@@ -1,4 +1,5 @@
-import { THEMES, dailyBudgetEur, hasDatabase, isDemoMode, loadSources } from "@flash-info/core";
+import { THEMES, dailyBudget, hasDatabase, isDemoMode, loadSources, spentToday } from "@flash-info/core";
+import Bulletins from "./Bulletins";
 import Events from "./Events";
 import Ingestion from "./Ingestion";
 import SourcesHealth from "./SourcesHealth";
@@ -6,14 +7,13 @@ import SourcesHealth from "./SourcesHealth";
 export const dynamic = "force-dynamic";
 
 const STEPS = [
-  { n: 5, title: "Extraire et vérifier les faits", desc: "Faits retenus et rejetés, avec la raison de chaque rejet." },
-  { n: 5, title: "Écrire le script", desc: "Script du bulletin et résultat du contrôle qualité." },
   { n: 6, title: "Générer l'audio", desc: "Voix OpenAI et post-production, lecteur intégré." },
 ];
 
-export default function TestPage() {
+export default async function TestPage() {
   const sources = loadSources();
   const demo = isDemoMode();
+  const spent = hasDatabase() ? await spentToday().catch(() => 0) : 0;
   const keys = {
     anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
     openai: Boolean(process.env.OPENAI_API_KEY),
@@ -31,13 +31,25 @@ export default function TestPage() {
           { k: "Clé Anthropic", v: keys.anthropic ? "Renseignée" : "Absente" },
           { k: "Clé OpenAI", v: keys.openai ? "Renseignée" : "Absente" },
           { k: "Base de données", v: hasDatabase() ? "Connectée" : "Absente" },
-          { k: "Dépenses du jour", v: `0,00 € / ${dailyBudgetEur().toFixed(2).replace(".", ",")} €` },
+          { k: "Dépenses du jour", v: `${spent.toFixed(2).replace(".", ",")} € / ${dailyBudget().toFixed(2).replace(".", ",")} €` },
         ].map((x) => (
           <div key={x.k} className="rounded-xl border border-line bg-card p-4">
             <p className="text-xs uppercase tracking-wider text-ink-soft">{x.k}</p>
             <p className="mt-1 font-semibold">{x.v}</p>
           </div>
         ))}
+      </section>
+
+      <section>
+        <h2 className="text-lg font-semibold">Bulletins réels</h2>
+        <p className="text-sm text-ink-soft mt-1">
+          Extraction des faits, vérification indépendante, rédaction, puis contrôle qualité par le code. Chaque fait rejeté est affiché avec sa raison.
+        </p>
+        {hasDatabase() ? (
+          <Bulletins themes={THEMES.map((t) => ({ id: t.id, label: t.label.fr }))} demo={demo} hasKey={keys.anthropic} />
+        ) : (
+          <p className="mt-3 text-sm text-accent">Base de données non configurée.</p>
+        )}
       </section>
 
       <section>

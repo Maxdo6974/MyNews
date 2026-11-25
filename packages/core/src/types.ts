@@ -58,7 +58,7 @@ export interface Persona {
 export interface BulletinChapter {
   title: string;
   text: string;
-  sources: { nom: string; url: string }[];
+  sources: { nom: string; url: string; title?: string }[];
 }
 
 export interface Bulletin {

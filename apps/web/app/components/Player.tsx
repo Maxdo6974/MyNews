@@ -162,7 +162,7 @@ export default function Player({ countries, themes: baseThemes, personas, featur
 
         <button onClick={generate} disabled={loading}
           className="mt-6 w-full rounded-xl bg-accent text-white py-3.5 font-semibold tracking-tight hover:opacity-95 disabled:opacity-60">
-          {loading ? "Préparation…" : "Générer mon flash"}
+          {loading ? "Préparation du bulletin (jusqu'à 1 min)…" : "Générer mon flash"}
         </button>
         {error && <p className="mt-3 text-sm text-accent">{error}</p>}
       </section>
@@ -219,8 +219,24 @@ export default function Player({ countries, themes: baseThemes, personas, featur
           <details className="mt-6 border-t border-line pt-4 text-sm">
             <summary className="cursor-pointer font-medium">Sources</summary>
             <p className="mt-2 text-ink-soft">
-              {bulletin.isDemo ? "Bulletin de démonstration : aucune source." : "—"}
+              {bulletin.isDemo ? "Bulletin de démonstration : aucune source." : `${bulletin.chapters.length} sujets, ${new Set(bulletin.chapters.flatMap((c) => c.sources.map((s) => s.url))).size} articles.`}
             </p>
+            {!bulletin.isDemo && (
+              <ul className="mt-3 space-y-3">
+                {bulletin.chapters.map((c, i) => (
+                  <li key={i}>
+                    <p className="font-medium">{c.title}</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {c.sources.map((s, k) => (
+                        <li key={k} className="text-ink-soft">
+                          {s.nom} — <a href={s.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">{s.title ?? "article"}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
           </details>
         </section>
       )}

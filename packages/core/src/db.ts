@@ -107,6 +107,45 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       CREATE INDEX cluster_articles_article ON cluster_articles (article_id);
     `,
   },
+  {
+    id: 3,
+    name: "bulletins, cost_log",
+    sql: `
+      CREATE TABLE bulletins (
+        id           bigserial PRIMARY KEY,
+        pays         text NOT NULL,
+        theme        text NOT NULL,
+        langue       text NOT NULL,
+        duree        text NOT NULL,
+        edition      text NOT NULL,
+        status       text NOT NULL,          -- en_cours | pret | echec
+        error        text,
+        intro        text,
+        chapters     jsonb NOT NULL DEFAULT '[]',
+        outro        text,
+        facts        jsonb NOT NULL DEFAULT '[]', -- faits retenus et rejetés, avec raisons
+        qc           jsonb NOT NULL DEFAULT '{}',
+        word_count   integer,
+        cost_eur     real NOT NULL DEFAULT 0,
+        duration_ms  integer,
+        created_at   timestamptz NOT NULL DEFAULT now(),
+        finished_at  timestamptz
+      );
+      CREATE INDEX bulletins_lookup ON bulletins (pays, theme, langue, duree, created_at DESC);
+      CREATE TABLE cost_log (
+        id           bigserial PRIMARY KEY,
+        at           timestamptz NOT NULL DEFAULT now(),
+        provider     text NOT NULL,
+        model        text NOT NULL,
+        purpose      text NOT NULL,
+        input_units  integer NOT NULL,
+        output_units integer NOT NULL,
+        cost_eur     real NOT NULL,
+        bulletin_id  bigint REFERENCES bulletins(id) ON DELETE SET NULL
+      );
+      CREATE INDEX cost_log_at ON cost_log (at);
+    `,
+  },
 ];
 
 const MIGRATION_LOCK = 72_000_001;
