@@ -54,7 +54,7 @@ const EXTRACT_SCHEMA = {
         properties: {
           event_id: { type: "integer" },
           is_news: { type: "boolean" },
-          reject_reason: { type: "string" },
+          reject_reason: { type: "string", description: "Chaîne vide si is_news vaut true." },
           main_theme: { type: "string" },
           neutral_title: { type: "string" },
           facts: {
@@ -64,7 +64,7 @@ const EXTRACT_SCHEMA = {
               properties: {
                 statement: { type: "string" },
                 kind: { type: "string", enum: ["fait", "declaration", "chiffre"] },
-                attribution: { type: ["string", "null"] },
+                attribution: { type: "string", description: "Auteur de la déclaration ou source du chiffre ; chaîne vide si sans objet." },
                 article_ids: { type: "array", items: { type: "integer" } },
               },
               required: ["statement", "kind", "article_ids"],
@@ -201,8 +201,8 @@ export async function generateBulletin(opts: GenerateOptions): Promise<BulletinR
         const ids = [...new Set(f.article_ids)].filter((id) => cand.articles.some((a) => a.id === id));
         const groups = [...new Set(ids.map((id) => articleById.get(id)!.groupe))];
         const rec: FactRecord = {
-          fact_id: `E${ev.event_id}F${i + 1}`, event_id: ev.event_id, statement: f.statement, kind: f.kind,
-          attribution: f.attribution ?? null, article_ids: ids, groups, status: "retenu", reason: null, stage: null,
+          fact_id: `E${ev.event_id}F${i + 1}`, event_id: ev.event_id, statement: f.statement, kind: (String(f.kind).toLowerCase() as FactRecord["kind"]),
+          attribution: f.attribution?.trim() || null, article_ids: ids, groups, status: "retenu", reason: null, stage: null,
         };
         // 3. Corroboration (règle 2), vérifiée par le code et non par l'IA.
         if (ids.length === 0) Object.assign(rec, { status: "rejete", reason: "Aucun article source valide cité.", stage: "corroboration" });
@@ -215,7 +215,7 @@ export async function generateBulletin(opts: GenerateOptions): Promise<BulletinR
       });
     }
     for (const ev of extracted.events ?? []) {
-      if (!ev.is_news) facts.push({ fact_id: `E${ev.event_id}`, event_id: ev.event_id, statement: candidates.find((c) => c.eventId === ev.event_id)?.label ?? "", kind: "fait", attribution: null, article_ids: [], groups: [], status: "rejete", reason: `Pas de l'information : ${ev.reject_reason ?? "non précisé"}`, stage: "extraction" });
+      if (!ev.is_news) facts.push({ fact_id: `E${ev.event_id}`, event_id: ev.event_id, statement: candidates.find((c) => c.eventId === ev.event_id)?.label ?? "", kind: "fait", attribution: null, article_ids: [], groups: [], status: "rejete", reason: `Pas de l'information : ${ev.reject_reason || "non précisé"}`, stage: "extraction" });
     }
 
     // 4. Vérification indépendante.
@@ -230,7 +230,7 @@ export async function generateBulletin(opts: GenerateOptions): Promise<BulletinR
     for (const f of toVerify) {
       const v = verdicts.get(f.fact_id);
       if (!v) Object.assign(f, { status: "rejete", reason: "Non examiné par le vérificateur.", stage: "verification" });
-      else if (v.verdict === "rejete") Object.assign(f, { status: "rejete", reason: v.reason, stage: "verification" });
+      else if (String(v.verdict).toLowerCase() === "rejete") Object.assign(f, { status: "rejete", reason: v.reason, stage: "verification" });
       else if (!f.reason) f.reason = v.reason;
     }
 

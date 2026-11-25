@@ -58,7 +58,23 @@ export interface StructuredCall {
 export type LlmFn = <T>(call: StructuredCall) => Promise<T>;
 
 /**
- * Appelle Claude et force une réponse JSON conforme au schéma (via un outil obligatoire).
+ * Adapte un schéma aux sorties structurées de l'API : chaque objet liste toutes ses propriétés
+ * comme obligatoires et interdit les propriétés supplémentaires.
+ */
+export function strictSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(strictSchema);
+  if (!schema || typeof schema !== "object") return schema;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(schema)) out[k] = strictSchema(v);
+  if (out.type === "object" && out.properties && typeof out.properties === "object") {
+    out.required = Object.keys(out.properties as object);
+    out.additionalProperties = false;
+  }
+  return out;
+}
+
+/**
+ * Appelle Claude et exige une réponse JSON conforme au schéma (sorties structurées).
  * Vérifie le plafond avant chaque appel, journalise le coût, réessaie en cas de surcharge.
  */
 export const callClaude: LlmFn = async <T,>(call: StructuredCall): Promise<T> => {
@@ -69,11 +85,9 @@ export const callClaude: LlmFn = async <T,>(call: StructuredCall): Promise<T> =>
   const body = {
     model,
     max_tokens: call.maxTokens ?? 4000,
-    temperature: 0,
     system: call.system,
     messages: [{ role: "user", content: call.user }],
-    tools: [{ name: "repondre", description: "Renvoie la réponse structurée.", input_schema: call.schema }],
-    tool_choice: { type: "tool", name: "repondre" },
+    output_config: { format: { type: "json_schema", schema: strictSchema(call.schema) } },
   };
 
   let lastError = "";
@@ -89,9 +103,14 @@ export const callClaude: LlmFn = async <T,>(call: StructuredCall): Promise<T> =>
       const usage = data.usage ?? {};
       const cost = costEur(model, usage.input_tokens ?? 0, usage.output_tokens ?? 0);
       await logCost({ provider: "anthropic", model, purpose: call.purpose, inputUnits: usage.input_tokens ?? 0, outputUnits: usage.output_tokens ?? 0, costEur: cost, bulletinId: call.bulletinId });
-      const block = (data.content ?? []).find((b: { type: string }) => b.type === "tool_use");
-      if (!block) throw new Error("Réponse du modèle sans contenu structuré.");
-      return block.input as T;
+      if (data.stop_reason === "max_tokens") throw new Error(`Réponse tronquée (${call.purpose}) : limite de longueur atteinte.`);
+      if (data.stop_reason === "refusal") throw new Error(`Le modèle a refusé de répondre (${call.purpose}).`);
+      const text = (data.content ?? []).filter((b: { type: string }) => b.type === "text").map((b: { text: string }) => b.text).join("");
+      try {
+        return JSON.parse(text) as T;
+      } catch {
+        throw new Error(`Réponse du modèle illisible (${call.purpose}).`);
+      }
     }
     lastError = `${res.status} ${data?.error?.message ?? ""}`.trim();
     if (![429, 500, 502, 503, 529].includes(res.status)) break;

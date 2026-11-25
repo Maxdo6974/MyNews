@@ -127,3 +127,14 @@ describe.skipIf(!TEST_DB)("génération d'un bulletin (intégration, IA simulée
     delete process.env.ANTHROPIC_API_KEY;
   });
 });
+
+describe("schéma strict pour l'API", () => {
+  it("rend toutes les propriétés obligatoires et interdit les autres, à tous les niveaux", async () => {
+    const { strictSchema } = await import("./llm");
+    const s = strictSchema({ type: "object", properties: { a: { type: "string" }, b: { type: "array", items: { type: "object", properties: { c: { type: "integer" } } } } } }) as any;
+    expect(s.required).toEqual(["a", "b"]);
+    expect(s.additionalProperties).toBe(false);
+    expect(s.properties.b.items.required).toEqual(["c"]);
+    expect(s.properties.b.items.additionalProperties).toBe(false);
+  });
+});
