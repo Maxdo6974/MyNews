@@ -1,52 +1,41 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
 import "@fontsource-variable/inter";
 import "./globals.css";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import RegisterSW from "./components/RegisterSW";
 
 export const metadata: Metadata = {
-  title: "Flash Info — l'actualité factuelle en 3 minutes",
-  description: "Bulletins audio d'actualité, construits uniquement à partir de faits recoupés.",
+  title: "Flash Info — l'actualité, rien que les faits",
+  description: "Flashs audio d'actualité de 2 à 3 minutes, construits uniquement à partir de faits recoupés par plusieurs rédactions indépendantes.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Flash Info", statusBarStyle: "black-translucent" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f6f3" },
-    { media: "(prefers-color-scheme: dark)", color: "#111317" },
-  ],
+  themeColor: "#0e0f12",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
-const demo = process.env.DEMO_MODE !== "false";
-
 export const dynamic = "force-dynamic";
+
+const demo = process.env.DEMO_MODE !== "false";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
       <body className="min-h-dvh flex flex-col">
-        {demo && (
-          <div className="bg-accent text-white text-xs text-center py-1.5 tracking-wide">
-            MODE DÉMO — contenus d'exemple, aucune information réelle, aucun appel API
-          </div>
-        )}
-        <header className="border-b border-line">
-          <div className="mx-auto max-w-3xl px-5 h-14 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-accent" aria-hidden />
-              Flash Info
-            </Link>
-            <nav className="text-sm text-ink-soft flex gap-5">
-              <Link href="/" className="hover:text-ink">Écouter</Link>
-              <Link href="/test" className="hover:text-ink">Test</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="flex-1 mx-auto w-full max-w-3xl px-5 py-8">{children}</main>
-        <footer className="border-t border-line text-xs text-ink-soft">
-          <div className="mx-auto max-w-3xl px-5 py-5 flex flex-col sm:flex-row gap-2 justify-between">
-            <span>Contenu généré automatiquement à partir de sources citées. Voix générée par IA.</span>
-            <span>v0.6 · étape 6</span>
-          </div>
-        </footer>
+        <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 bg-ink text-paper px-3 py-2 rounded">
+          Aller au contenu
+        </a>
+        <Header demo={demo} />
+        <main id="contenu" className="flex-1 mx-auto w-full max-w-2xl px-5 py-8 pb-[max(2rem,env(safe-area-inset-bottom))]">{children}</main>
+        <Footer />
+        <RegisterSW />
       </body>
     </html>
   );

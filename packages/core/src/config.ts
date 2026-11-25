@@ -72,6 +72,7 @@ export const PERSONAS: Persona[] = [
     id: "persona_a",
     nomAffiche: "Le Présentateur",
     description: "Voix grave et posée, ton de JT classique",
+    descriptionEn: "Deep, measured voice, classic news anchor",
     openaiVoice: "cedar",
     instructions: {
       fr: "Présentateur de journal télévisé français expérimenté. Voix grave, débit posé et régulier, autorité calme, articulation nette. Ton neutre et sobre. Courte pause entre chaque sujet.",
@@ -81,7 +82,8 @@ export const PERSONAS: Persona[] = [
   {
     id: "persona_b",
     nomAffiche: "La Présentatrice",
-    description: "Voix claire et élégante, ton de JT du soir",
+    description: "Clear, elegant voice, evening news style",
+    descriptionEn: "Clear, elegant voice, evening news style",
     openaiVoice: "marin",
     instructions: {
       fr: "Présentatrice de journal télévisé du soir. Voix claire et chaleureuse, élégante, articulation impeccable, débit fluide. Ton neutre et sobre. Courte pause entre chaque sujet.",

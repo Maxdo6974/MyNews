@@ -323,3 +323,15 @@ export function generateOnce(opts: GenerateOptions): Promise<BulletinResult> {
   if (!pending.has(key)) pending.set(key, generateBulletin(opts).finally(() => pending.delete(key)));
   return pending.get(key)!;
 }
+
+/** Éditions publiées, les plus récentes d'abord (historique public). */
+export async function listPublished(opts: { pays?: string; limit?: number } = {}) {
+  const limit = Math.min(Math.max(opts.limit ?? 30, 1), 100);
+  return db()`
+    SELECT b.id, b.pays, b.theme, b.langue, b.duree, b.created_at, b.word_count,
+      (SELECT json_agg(c->>'title') FROM jsonb_array_elements(b.chapters) c) AS titles,
+      (SELECT array_agg(persona) FROM bulletin_audio a WHERE a.bulletin_id = b.id) AS voices
+    FROM bulletins b
+    WHERE b.status = 'pret' AND (${opts.pays ?? null}::text IS NULL OR b.pays = ${opts.pays ?? null})
+    ORDER BY b.id DESC LIMIT ${limit}`;
+}

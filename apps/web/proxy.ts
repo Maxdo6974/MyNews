@@ -7,7 +7,8 @@ export async function proxy(req: NextRequest) {
   if (!password) return NextResponse.next();
 
   const { pathname } = req.nextUrl;
-  if (pathname === "/login" || pathname === "/api/login") return NextResponse.next();
+  // Le manifeste, les icônes et le service worker doivent rester accessibles (installation de l'appli).
+  if (pathname === "/login" || pathname === "/api/login" || pathname === "/manifest.webmanifest" || pathname === "/sw.js" || pathname === "/offline.html" || pathname.startsWith("/icons/")) return NextResponse.next();
 
   const cookie = req.cookies.get(AUTH_COOKIE)?.value;
   if (cookie && cookie === (await tokenFor(password))) return NextResponse.next();

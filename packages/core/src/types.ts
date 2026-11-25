@@ -51,6 +51,7 @@ export interface Persona {
   id: "persona_a" | "persona_b";
   nomAffiche: string;
   description: string;
+  descriptionEn: string;
   openaiVoice: string;
   instructions: Record<Language, string>;
 }

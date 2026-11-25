@@ -8,7 +8,7 @@
 | 4. Regroupement et classement | ✅ 25/11/2026 |
 | 5. Faits, vérification, script, contrôle qualité | ✅ 25/11/2026 |
 | 6. Voix OpenAI et post-production audio | ✅ 25/11/2026 |
-| 7. Interface complète et lecteur audio | à faire |
+| 7. Interface complète et lecteur audio | ✅ 25/11/2026 |
 | 8. Éditions planifiées et génération à la demande | à faire |
 | 9. Comptes, flux RSS personnel, admin, signalements | à faire |
 | 10. Tests, mentions légales, production | à faire |
@@ -66,6 +66,15 @@
 - Tests : 31 (dont montage audio réel avec ffmpeg et circuit complet avec voix simulée).
 - Premier audio réel (25/11/2026, bulletin n° 3) : Le Présentateur 2 min 00 s, La Présentatrice 2 min 06 s, environ 12 s de génération et environ 0,04 € (estimation) par voix.
 
+## Étape 7 — contenu
+- Direction graphique « radio premium sombre » (choisie le 25/11) : fond #0E0F12, texte #F2F0EB, un seul accent rouge #E5322D, Inter.
+- Accueil : date et édition (matin / midi / soir / nuit), pays avec drapeaux dessinés (SVG, lisibles sous Windows), thèmes en pastilles (« À la une » seulement si un thème du moment existe pour le pays), langue et durée en interrupteurs, deux voix, grand bouton d'écoute avec étapes de préparation affichées.
+- Lecteur : grand bouton lecture, onde animée, barre avec repères de sujets, ±15 s, sujet précédent/suivant, vitesse, partage, téléchargement, sommaire avec horaires, transcription et sources dépliables, lecture automatique quand l'audio est prêt, commandes de l'écran verrouillé.
+- Historique des éditions publiées (filtre par pays) et page de partage par bulletin (`/b/<n°>?voix=…`), avec choix de la voix.
+- Interface en français et en anglais (bouton FR/EN, langue du navigateur par défaut), indépendante de la langue du flash.
+- Appli installable (PWA) : manifeste, icônes, service worker, page hors connexion ; aucune donnée d'actualité en cache.
+- Accessibilité : lien d'évitement, focus visible, libellés ARIA, curseur clavier sur la barre de lecture, animations coupées si l'utilisateur le demande, contrastes AA.
+
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
   Désactivées : Le Figaro et Les Échos (HTTP 403, refusent les robots — non contourné), ancien flux Corriere et Gazzetta (figés), Le Point, Corriere v2/v3, Corriere dello Sport (en échec).
@@ -80,4 +89,5 @@
 - Les thèmes par mots-clés font quelques erreurs (ex. un sujet budgétaire classé « International ») ; l'étape 5 (IA) pourra les corriger.
 - Deux médias reprenant la même dépêche d'agence (AFP, dpa, ANSA…) comptent comme deux confirmations ; à traiter à l'étape 5.
 - Un même débat peut être découpé en 2 ou 3 événements proches ; l'étape 5 pourra les fusionner.
-- shadcn/ui n'est pas encore utilisé ; les composants sont en Tailwind simple.
+- shadcn/ui n'a pas été retenu : composants Tailwind sur mesure, plus légers pour ce design.
+- Thème sombre uniquement (choix de direction) ; un thème clair pourra être ajouté.
