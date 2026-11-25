@@ -64,6 +64,7 @@
 - Lecteur : lecture/pause, ±15 s, sujet suivant, vitesse, barre avec repères de chapitres, transcription cliquable et surlignée, téléchargement MP3, commandes de l'écran verrouillé (Media Session).
 - Page /test : écoute de chaque bulletin avec les deux voix, durée, coût, temps de génération.
 - Tests : 31 (dont montage audio réel avec ffmpeg et circuit complet avec voix simulée).
+- Premier audio réel (25/11/2026, bulletin n° 3) : Le Présentateur 2 min 00 s, La Présentatrice 2 min 06 s, environ 12 s de génération et environ 0,04 € (estimation) par voix.
 
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
