@@ -1,0 +1,286 @@
+# Sources d'information — Flash Info
+# statut : "a_verifier" tant que le health-check du serveur ne l'a pas validé.
+# Les URL n'ont PAS pu être vérifiées depuis l'environnement de développement
+# (les sites de presse bloquent cet accès). Le worker les teste au premier démarrage
+# et la page /test affiche le résultat. Toute URL morte sera corrigée à ce moment-là.
+# groupe : sert à la règle d'indépendance (2 sources d'un même groupe = 1 seule source).
+# poids : fiabilité relative utilisée dans le classement (0.5 à 1.0).
+
+defaults:
+  statut: a_verifier
+  poids: 0.8
+
+sources:
+  # ───────────── FRANCE ─────────────
+  - id: franceinfo
+    nom: franceinfo
+    pays: FR
+    langue: fr
+    groupe: france_televisions
+    poids: 1.0
+    themes: [generaliste, politique, economie, international, sport, sciences, sante, culture, climat]
+    url: https://www.francetvinfo.fr/titres.rss
+  - id: lemonde
+    nom: Le Monde
+    pays: FR
+    langue: fr
+    groupe: groupe_le_monde
+    poids: 1.0
+    themes: [generaliste, politique, economie, international, sciences, climat, culture]
+    url: https://www.lemonde.fr/rss/une.xml
+  - id: lefigaro
+    nom: Le Figaro
+    pays: FR
+    langue: fr
+    groupe: groupe_figaro
+    poids: 0.9
+    themes: [generaliste, politique, economie, international]
+    url: https://www.lefigaro.fr/rss/figaro_actualites.xml
+  - id: liberation
+    nom: Libération
+    pays: FR
+    langue: fr
+    groupe: liberation
+    poids: 0.9
+    themes: [generaliste, politique, international, culture]
+    url: https://www.liberation.fr/arc/outboundfeeds/rss-all/?outputType=xml
+  - id: lesechos
+    nom: Les Échos
+    pays: FR
+    langue: fr
+    groupe: groupe_les_echos
+    poids: 1.0
+    themes: [economie]
+    url: https://services.lesechos.fr/rss/les-echos-economie.xml
+  - id: france24_fr
+    nom: France 24
+    pays: FR
+    langue: fr
+    groupe: france_medias_monde
+    poids: 1.0
+    themes: [international, generaliste]
+    url: https://www.france24.com/fr/rss
+  - id: lequipe
+    nom: L'Équipe
+    pays: FR
+    langue: fr
+    groupe: amaury
+    poids: 1.0
+    themes: [sport]
+    url: https://dwh.lequipe.fr/api/edito/rss?path=/
+  - id: ouestfrance
+    nom: Ouest-France
+    pays: FR
+    langue: fr
+    groupe: sipa
+    poids: 0.9
+    themes: [generaliste, politique, sport]
+    url: https://www.ouest-france.fr/rss/une
+  - id: 20minutes
+    nom: 20 Minutes
+    pays: FR
+    langue: fr
+    groupe: sipa   # copropriété SIPA / Rossel : traité comme non indépendant d'Ouest-France par prudence
+    poids: 0.8
+    themes: [generaliste]
+    url: https://www.20minutes.fr/feeds/rss-une.xml
+
+  # ───────────── ITALIE ─────────────
+  - id: ansa
+    nom: ANSA
+    pays: IT
+    langue: it
+    groupe: ansa
+    poids: 1.0
+    themes: [generaliste, politique, economie, international, sport]
+    url: https://www.ansa.it/sito/notizie/topnews/topnews_rss.xml
+  - id: corriere
+    nom: Corriere della Sera
+    pays: IT
+    langue: it
+    groupe: rcs
+    poids: 1.0
+    themes: [generaliste, politique, economie, international]
+    url: https://xml2.corriereobjects.it/rss/homepage.xml
+  - id: repubblica
+    nom: la Repubblica
+    pays: IT
+    langue: it
+    groupe: gedi
+    poids: 0.9
+    themes: [generaliste, politique, international]
+    url: https://www.repubblica.it/rss/homepage/rss2.0.xml
+  - id: sole24ore
+    nom: Il Sole 24 Ore
+    pays: IT
+    langue: it
+    groupe: sole24ore
+    poids: 1.0
+    themes: [economie]
+    url: https://www.ilsole24ore.com/rss/italia.xml
+  - id: rainews
+    nom: RaiNews
+    pays: IT
+    langue: it
+    groupe: rai
+    poids: 1.0
+    themes: [generaliste, politique, international]
+    url: https://www.rainews.it/rss/tutti
+  - id: lastampa
+    nom: La Stampa
+    pays: IT
+    langue: it
+    groupe: gedi   # à confirmer : propriété susceptible d'avoir changé
+    poids: 0.9
+    themes: [generaliste, politique]
+    url: https://www.lastampa.it/rss
+  - id: gazzetta
+    nom: La Gazzetta dello Sport
+    pays: IT
+    langue: it
+    groupe: rcs
+    poids: 1.0
+    themes: [sport]
+    url: https://www.gazzetta.it/rss/home.xml
+
+  # ───────────── ALLEMAGNE ─────────────
+  - id: tagesschau
+    nom: Tagesschau
+    pays: DE
+    langue: de
+    groupe: ard
+    poids: 1.0
+    themes: [generaliste, politique, economie, international, sciences, climat]
+    url: https://www.tagesschau.de/index~rss2.xml
+  - id: dw_de
+    nom: Deutsche Welle
+    pays: DE
+    langue: de
+    groupe: deutsche_welle
+    poids: 1.0
+    themes: [international, generaliste]
+    url: https://rss.dw.com/rdf/rss-de-all
+  - id: spiegel
+    nom: Der Spiegel
+    pays: DE
+    langue: de
+    groupe: spiegel
+    poids: 0.9
+    themes: [generaliste, politique, international]
+    url: https://www.spiegel.de/schlagzeilen/index.rss
+  - id: faz
+    nom: FAZ
+    pays: DE
+    langue: de
+    groupe: faz
+    poids: 1.0
+    themes: [generaliste, politique, economie]
+    url: https://www.faz.net/rss/aktuell/
+  - id: sz
+    nom: Süddeutsche Zeitung
+    pays: DE
+    langue: de
+    groupe: swmh
+    poids: 1.0
+    themes: [generaliste, politique]
+    url: https://rss.sueddeutsche.de/rss/Topthemen
+  - id: zeit
+    nom: Die Zeit
+    pays: DE
+    langue: de
+    groupe: holtzbrinck
+    poids: 0.9
+    themes: [generaliste, politique, sciences]
+    url: https://newsfeed.zeit.de/index
+  - id: handelsblatt
+    nom: Handelsblatt
+    pays: DE
+    langue: de
+    groupe: handelsblatt_media
+    poids: 1.0
+    themes: [economie]
+    url: https://www.handelsblatt.com/contentexport/feed/top-themen
+  - id: kicker
+    nom: Kicker
+    pays: DE
+    langue: de
+    groupe: kicker
+    poids: 1.0
+    themes: [sport]
+    url: https://newsfeed.kicker.de/news/aktuell
+
+  # ───────────── ROYAUME-UNI ─────────────
+  - id: bbc
+    nom: BBC News
+    pays: UK
+    langue: en
+    groupe: bbc
+    poids: 1.0
+    themes: [generaliste, politique, economie, international, sciences, sante, climat, culture]
+    url: https://feeds.bbci.co.uk/news/rss.xml
+  - id: guardian
+    nom: The Guardian
+    pays: UK
+    langue: en
+    groupe: guardian_media
+    poids: 0.9
+    themes: [generaliste, politique, international, climat, culture]
+    url: https://www.theguardian.com/uk/rss
+  - id: skynews
+    nom: Sky News
+    pays: UK
+    langue: en
+    groupe: sky
+    poids: 0.9
+    themes: [generaliste, politique]
+    url: https://feeds.skynews.com/feeds/rss/home.xml
+  - id: independent
+    nom: The Independent
+    pays: UK
+    langue: en
+    groupe: independent
+    poids: 0.8
+    themes: [generaliste, politique]
+    url: https://www.independent.co.uk/news/uk/rss
+  - id: telegraph
+    nom: The Telegraph
+    pays: UK
+    langue: en
+    groupe: telegraph
+    poids: 0.9
+    themes: [generaliste, politique, economie]
+    url: https://www.telegraph.co.uk/rss.xml
+  - id: bbcsport
+    nom: BBC Sport
+    pays: UK
+    langue: en
+    groupe: bbc
+    poids: 1.0
+    themes: [sport]
+    url: https://feeds.bbci.co.uk/sport/rss.xml
+
+  # ───────────── INTERNATIONAL (utilisées pour tous les pays, thème international) ─────────────
+  - id: dw_en
+    nom: DW (English)
+    pays: INT
+    langue: en
+    groupe: deutsche_welle
+    poids: 1.0
+    themes: [international]
+    url: https://rss.dw.com/rdf/rss-en-all
+  - id: bbc_world
+    nom: BBC World
+    pays: INT
+    langue: en
+    groupe: bbc
+    poids: 1.0
+    themes: [international]
+    url: https://feeds.bbci.co.uk/news/world/rss.xml
+  - id: france24_en
+    nom: France 24 (English)
+    pays: INT
+    langue: en
+    groupe: france_medias_monde
+    poids: 1.0
+    themes: [international]
+    url: https://www.france24.com/en/rss
