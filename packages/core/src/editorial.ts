@@ -243,7 +243,10 @@ export async function generateBulletin(opts: GenerateOptions): Promise<BulletinR
     if (usable.length < 2) throw new Error(`Seulement ${usable.length} sujet(s) avec des faits vérifiés : bulletin non publié.`);
 
     // 6. Rédaction, puis contrôle qualité par le code (réécriture si besoin).
-    const target = TARGET_WORDS[opts.duration];
+    // Longueur visée proportionnelle au nombre de sujets disponibles.
+    const full = TARGET_WORDS[opts.duration];
+    const ratio = usable.length / needed;
+    const target = { min: Math.round(full.min * ratio), max: Math.round(full.max * ratio) };
     const factsForScript = usable.map((c, i) => [
       `Sujet ${i + 1}`,
       ...retained.filter((f) => f.event_id === c.eventId).map((f) => `- ${f.fact_id} [${f.kind}${f.attribution ? ` ; ${f.attribution}` : ""}${f.groups.length < 2 ? " ; SOURCE UNIQUE" : ""}] ${f.statement}`),

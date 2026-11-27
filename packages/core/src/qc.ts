@@ -14,7 +14,7 @@ const OPINION_WORDS: Record<Language, string[]> = {
 };
 
 const SPEECH_RATE_WPM = 150;
-const COPY_WINDOW = 12;
+const COPY_WINDOW = 15;
 
 export interface QcInput {
   language: Language;
@@ -53,7 +53,8 @@ export function runQc(input: QcInput): QcReport {
   const all = [input.intro, ...input.chapters.map((c) => c.text), input.outro].join(" ");
   const wc = words(all).length;
   const target = TARGET_WORDS[input.duration];
-  const min = Math.round(target.min * 0.9), max = Math.round(target.max * 1.08);
+  // Quand l'actualité est mince (moins de sujets), un flash plus court vaut mieux qu'un refus.
+  const min = Math.round(Math.min(target.min * 0.9, 50 * input.chapters.length + 40)), max = Math.round(target.max * 1.08);
   if (wc < min) issues.push(`Trop court : ${wc} mots (minimum ${min}).`);
   if (wc > max) issues.push(`Trop long : ${wc} mots (maximum ${max}).`);
 

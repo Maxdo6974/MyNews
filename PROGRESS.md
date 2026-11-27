@@ -92,7 +92,9 @@
 - Rappel musical de 1,5 s (début du thème de l'introduction, fondu) avant chaque nouveau sujet et avant la clôture ; pas juste après l'introduction. Les repères de chapitres pointent sur la voix, après le rappel.
 - Migration 6 : l'audio déjà produit est effacé (refait avec le nouveau montage à la première écoute).
 - Option à décider : passer la voix sur ElevenLabs (Eleven v3), plus réaliste que `gpt-4o-mini-tts` — et ce dernier s'arrête le 6 janvier 2027.
-- Tests : 38.
+- Échecs constatés le 26/11 (tests des amis) et corrigés : n° 9 (Santé) refusé pour une phrase factuelle de 12 mots identique à une source → seuil anti-copie porté à 15 mots ; n° 11 (À la une) refusé car trop court faute de faits → longueur visée et plancher proportionnels au nombre de sujets disponibles (≥ 50 mots par sujet).
+- Essai réel du nouveau montage (bulletin n° 13, FR, Le Présentateur) : 2 min 57, 4 rappels musicaux, 43 s de préparation, 0,06 €.
+- Tests : 39.
 
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.

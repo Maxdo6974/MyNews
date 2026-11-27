@@ -6,7 +6,7 @@ const filler = (n: number) => Array.from({ length: n }, (_, i) => `mot${i}`).joi
 
 describe("contrôle qualité", () => {
   const facts = new Map([["E1F1", "Le pont de Valmont est fermé depuis le 3 mars."], ["E1F2", "Les travaux dureront 8 mois selon la préfecture."]]);
-  const base = { language: "fr" as const, duration: "court" as const, facts, sourceTexts: ["Le pont de Valmont a été fermé mardi après la découverte de fissures importantes sur sa structure métallique centrale"] };
+  const base = { language: "fr" as const, duration: "court" as const, facts, sourceTexts: ["Le pont de Valmont a été fermé mardi après la découverte de fissures importantes sur sa structure métallique centrale par les services de la préfecture"] };
 
   it("accepte un script conforme", () => {
     const r = runQc({ ...base, intro: "Bonjour, il est 10 h 30.", chapters: [{ title: "Pont fermé", text: `Le pont de Valmont est fermé depuis le 3 mars. Les travaux dureront 8 mois. ${filler(270)}`, fact_ids: ["E1F1", "E1F2"] }], outro: "Fin." });
@@ -18,6 +18,13 @@ describe("contrôle qualité", () => {
     expect(r.issues.join(" ")).toContain("malheureusement");
     expect(r.issues.join(" ")).not.toContain("catastrophique");
   });
+  it("accepte un flash plus court quand il y a peu de sujets, mais pas un flash vide", () => {
+    const ok = runQc({ ...base, duration: "standard", intro: "Bonjour.", chapters: [{ title: "Pont", text: filler(75), fact_ids: ["E1F1"] }, { title: "Suite", text: filler(75), fact_ids: ["E1F2"] }], outro: "Fin." });
+    expect(ok.issues.join(" ")).not.toContain("Trop court");
+    const ko = runQc({ ...base, duration: "standard", intro: "Bonjour.", chapters: [{ title: "Pont", text: filler(20), fact_ids: ["E1F1"] }, { title: "Suite", text: filler(20), fact_ids: ["E1F2"] }], outro: "Fin." });
+    expect(ko.issues.join(" ")).toContain("Trop court");
+  });
+
   it("refuse les redites et les commentaires sur les sources", () => {
     const r = runQc({ ...base, intro: "Bonjour.", chapters: [{ title: "Douanes", text: `Les partenaires visés comprennent l'Union européenne et la Chine. L'Union européenne et la Chine figurent donc parmi les partenaires visés. Ce chiffre est rapporté par France 24 uniquement. ${filler(280)}`, fact_ids: ["E1F1"] }], outro: "Fin." });
     const all = r.issues.join(" ");
@@ -35,7 +42,7 @@ describe("contrôle qualité", () => {
     expect(r.issues.join(" ")).toContain("12");
   });
   it("refuse un texte trop long, un fait inconnu et un passage recopié", () => {
-    const r = runQc({ ...base, intro: "Bonjour.", chapters: [{ title: "Pont", text: `Le pont de Valmont a été fermé mardi après la découverte de fissures importantes sur sa structure. ${filler(500)}`, fact_ids: ["E9F9"] }], outro: "Fin." });
+    const r = runQc({ ...base, intro: "Bonjour.", chapters: [{ title: "Pont", text: `Le pont de Valmont a été fermé mardi après la découverte de fissures importantes sur sa structure métallique centrale. ${filler(500)}`, fact_ids: ["E9F9"] }], outro: "Fin." });
     const all = r.issues.join(" ");
     expect(all).toContain("Trop long");
     expect(all).toContain("E9F9");
