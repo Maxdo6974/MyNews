@@ -75,8 +75,8 @@ export const PERSONAS: Persona[] = [
     descriptionEn: "Deep, confident voice, radio news style",
     openaiVoice: "cedar",
     instructions: {
-      fr: "Présentateur de flash info à la radio, à l'antenne en direct. Débit soutenu et rythmé, énergie maîtrisée, voix grave et assurée. Attaque nette au début de chaque phrase, intonation vivante qui accompagne l'information, jamais monotone ni traînante. Ton neutre et factuel. Très courte respiration entre deux sujets.",
-      en: "Live radio news anchor reading a fast-paced bulletin. Brisk, rhythmic delivery with controlled energy, deep and confident voice. Crisp start to each sentence, lively intonation that follows the news, never monotone or dragging. Neutral, factual tone. Very short breath between stories.",
+      fr: "Journaliste de la matinale d'une grande radio d'information française, en direct, qui lit le flash de l'heure. Débit rapide et tendu, énergie franche dès le premier mot, voix grave, assurée et naturelle, jamais robotique. Phrases attaquées net, mots importants appuyés (noms, chiffres, verbes d'action), intonation qui monte et descend comme un vrai présentateur, aucune lenteur ni emphase théâtrale. Ton neutre et factuel, enchaînements sans temps mort.",
+      en: "Morning news journalist on a major British radio station, live, reading the top-of-the-hour bulletin. Fast, punchy delivery, real energy from the first word, deep, confident and natural voice, never robotic. Crisp sentence starts, stress on key words (names, numbers, action verbs), lively rising and falling intonation like a real newsreader, no slowness and no theatrical emphasis. Neutral, factual tone, no dead air between sentences.",
     },
   },
   {
@@ -86,8 +86,8 @@ export const PERSONAS: Persona[] = [
     descriptionEn: "Clear, lively voice, radio news style",
     openaiVoice: "marin",
     instructions: {
-      fr: "Présentatrice de flash info à la radio, à l'antenne en direct. Débit soutenu et rythmé, voix claire, vive et chaleureuse, articulation impeccable. Attaque nette au début de chaque phrase, intonation vivante, jamais monotone ni traînante. Ton neutre et factuel. Très courte respiration entre deux sujets.",
-      en: "Live radio news presenter reading a fast-paced bulletin. Brisk, rhythmic delivery, clear, bright and warm voice, impeccable diction. Crisp start to each sentence, lively intonation, never monotone or dragging. Neutral, factual tone. Very short breath between stories.",
+      fr: "Journaliste de la matinale d'une grande radio d'information française, en direct, qui lit le flash de l'heure. Débit rapide et tendu, énergie franche dès le premier mot, voix claire, vive et naturelle, jamais robotique. Phrases attaquées net, mots importants appuyés (noms, chiffres, verbes d'action), intonation qui monte et descend comme une vraie présentatrice, aucune lenteur ni emphase théâtrale. Ton neutre et factuel, enchaînements sans temps mort.",
+      en: "Morning news journalist on a major British radio station, live, reading the top-of-the-hour bulletin. Fast, punchy delivery, real energy from the first word, clear, bright and natural voice, never robotic. Crisp sentence starts, stress on key words (names, numbers, action verbs), lively rising and falling intonation like a real newsreader, no slowness and no theatrical emphasis. Neutral, factual tone, no dead air between sentences.",
     },
   },
 ];

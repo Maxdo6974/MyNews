@@ -11,10 +11,14 @@ import { defaultTtsProvider, type TtsProvider } from "./tts";
 import type { Language, Persona } from "./types";
 
 const run = promisify(execFile);
-/** Silence entre deux parties du bulletin (secondes). */
-const GAP_SECONDS = 0.5;
-/** Accélération de la voix, sans changer sa hauteur (1 = vitesse d'origine). */
-const tempo = () => Math.min(1.25, Math.max(0.9, Number(process.env.AUDIO_TEMPO ?? "1.08")));
+/** Court silence après une prise de voix (secondes). */
+const GAP_SECONDS = 0.35;
+/** Silence entre le rappel musical et la voix du sujet suivant. */
+const STING_GAP = 0.12;
+/** Durée du rappel musical entre deux sujets. */
+const STING_SECONDS = 1.5;
+/** Accélération de la voix, sans changer sa hauteur (1 = vitesse d'origine). Débit d'un flash radio ≈ ×1,15. */
+const tempo = () => Math.min(1.3, Math.max(0.9, Number(process.env.AUDIO_TEMPO ?? "1.15")));
 /** Musique d'introduction : seule avant la voix, puis en fond, puis fondu. */
 const INTRO_LEAD = 1.8;
 const INTRO_TAIL = 1.2;
@@ -48,22 +52,36 @@ export async function renderIntroBed(seconds: number, file: string): Promise<voi
     "-ar", "44100", "-ac", "1", file]);
 }
 
+/** Rappel musical entre deux sujets : début du thème (tic-tac + accord), fondu rapide. */
+export async function renderSting(file: string): Promise<void> {
+  const bed = `${file}.bed.wav`;
+  await renderIntroBed(6, bed);
+  await run("ffmpeg", ["-y", "-v", "error", "-i", bed, "-t", STING_SECONDS.toFixed(2),
+    "-af", `afade=t=in:d=0.02,afade=t=out:st=${(STING_SECONDS - 0.65).toFixed(2)}:d=0.65,volume=0.7`, "-ac", "1", "-ar", "44100", file]);
+  await fs.rm(bed, { force: true });
+}
+
 /**
- * Assemble les segments : voix accélérée (tempo), musique sous l'introduction, silences entre parties,
- * volume normalisé (−16 LUFS, norme podcast), MP3 128 kbit/s. Renvoie le début de chaque partie.
+ * Assemble les segments : voix accélérée (tempo), musique sous l'introduction, rappel musical
+ * entre deux sujets, volume normalisé (−16 LUFS, norme podcast), MP3 128 kbit/s.
+ * Le début de chaque partie pointe sur la voix (après le rappel musical).
  */
-export async function assemble(segments: { title: string; mp3: Buffer }[], workDir: string, opts: { introBed?: boolean } = {}): Promise<{ mp3: Buffer; durationMs: number; chapters: AudioChapter[] }> {
-  const files: string[] = [];
+export async function assemble(
+  segments: { title: string; mp3: Buffer }[],
+  workDir: string,
+  opts: { introBed?: boolean; stings?: boolean } = {},
+): Promise<{ mp3: Buffer; durationMs: number; chapters: AudioChapter[] }> {
+  const voices: string[] = [];
   for (let i = 0; i < segments.length; i++) {
     const raw = path.join(workDir, `seg${i}.mp3`);
     const out = path.join(workDir, `seg${i}.wav`);
     await fs.writeFile(raw, segments[i].mp3);
     await run("ffmpeg", ["-y", "-v", "error", "-i", raw, "-af", `atempo=${tempo()},aresample=44100`, "-ac", "1", out]);
-    files.push(out);
+    voices.push(out);
   }
 
-  if (opts.introBed && files.length) {
-    const voice = files[0];
+  if (opts.introBed && voices.length) {
+    const voice = voices[0];
     const voiceDur = await probeSeconds(voice);
     const bed = path.join(workDir, "bed.wav");
     const mixed = path.join(workDir, "intro.wav");
@@ -72,18 +90,34 @@ export async function assemble(segments: { title: string; mp3: Buffer }[], workD
     await run("ffmpeg", ["-y", "-v", "error", "-i", bed, "-i", voice, "-filter_complex",
       `[0:a]volume='if(lt(t,${lead}),1,${BED_UNDER_VOICE})':eval=frame[m];[1:a]adelay=${Math.round(INTRO_LEAD * 1000)}:all=1[v];[m][v]amix=inputs=2:duration=first:normalize=0[out]`,
       "-map", "[out]", "-ac", "1", mixed]);
-    files[0] = mixed;
+    voices[0] = mixed;
   }
 
+  let sting: string | null = null;
+  if (opts.stings && voices.length > 2) {
+    sting = path.join(workDir, "sting.wav");
+    await renderSting(sting);
+  }
+
+  // Suite des morceaux : [intro] [sujet 1] [rappel] [sujet 2] … [rappel] [clôture].
+  // Pas de rappel juste après l'intro : sa musique vient de s'éteindre.
+  const clips: { file: string; pad: number }[] = [];
   const chapters: AudioChapter[] = [];
   let t = 0;
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < voices.length; i++) {
+    if (sting && i >= 2) {
+      clips.push({ file: sting, pad: STING_GAP });
+      t += (await probeSeconds(sting)) + STING_GAP;
+    }
     chapters.push({ title: segments[i].title, startMs: Math.round(t * 1000) });
-    t += (await probeSeconds(files[i])) + (i < files.length - 1 ? GAP_SECONDS : 0);
+    const pad = i < voices.length - 1 ? GAP_SECONDS : 0;
+    clips.push({ file: voices[i], pad });
+    t += (await probeSeconds(voices[i])) + pad;
   }
-  const inputs = files.flatMap((f) => ["-i", f]);
-  const parts = files.map((_, i) => (i < files.length - 1 ? `[${i}:a]apad=pad_dur=${GAP_SECONDS}[a${i}]` : `[${i}:a]anull[a${i}]`));
-  const filter = `${parts.join(";")};${files.map((_, i) => `[a${i}]`).join("")}concat=n=${files.length}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100[out]`;
+
+  const inputs = clips.flatMap((c) => ["-i", c.file]);
+  const parts = clips.map((c, i) => (c.pad > 0 ? `[${i}:a]apad=pad_dur=${c.pad}[a${i}]` : `[${i}:a]anull[a${i}]`));
+  const filter = `${parts.join(";")};${clips.map((_, i) => `[a${i}]`).join("")}concat=n=${clips.length}:v=0:a=1,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=44100[out]`;
   const out = path.join(workDir, "bulletin.mp3");
   await run("ffmpeg", ["-y", "-v", "error", ...inputs, "-filter_complex", filter, "-map", "[out]", "-c:a", "libmp3lame", "-b:a", "128k", "-ar", "44100", out], { maxBuffer: 1 << 26 });
   const mp3 = await fs.readFile(out);
@@ -119,7 +153,7 @@ export async function buildBulletinAudio(bulletinId: number, language: Language,
 
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "flash-audio-"));
   try {
-    const assembled = await assemble(segments.map((s, i) => ({ title: s.title, mp3: mp3s[i] })), workDir, { introBed: true });
+    const assembled = await assemble(segments.map((s, i) => ({ title: s.title, mp3: mp3s[i] })), workDir, { introBed: true, stings: true });
     const characters = segments.reduce((n, s) => n + s.text.length, 0);
     const cost = provider.costEur(assembled.durationMs / 1000, characters);
     await logCost({ provider: provider.name, model: process.env.OPENAI_TTS_MODEL ?? "gpt-4o-mini-tts", purpose: `voix ${persona.id} ${language}`, inputUnits: characters, outputUnits: Math.round(assembled.durationMs / 1000), costEur: cost, bulletinId });

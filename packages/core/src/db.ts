@@ -200,6 +200,11 @@ const MIGRATIONS: { id: number; name: string; sql: string }[] = [
       );
     `,
   },
+  {
+    id: 6,
+    name: "nouveau montage audio (tempo, rappels musicaux)",
+    sql: `DELETE FROM bulletin_audio;`,
+  },
 ];
 
 const MIGRATION_LOCK = 72_000_001;

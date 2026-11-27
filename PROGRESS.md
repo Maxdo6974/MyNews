@@ -86,6 +86,14 @@
 - L'audio existant a été supprimé par la migration 5 (il sera refait avec le nouveau montage à la première écoute).
 - Tests : 37.
 
+## Retours du 27/11 sur la voix
+- Voix plus rapide : accélération ×1,15 par défaut (`AUDIO_TEMPO`, jusqu'à 1,3), silences entre parties ramenés à 0,35 s.
+- Consignes de ton réécrites (débit de matinale radio, mots-clés appuyés, intonation vivante, « jamais robotique »).
+- Rappel musical de 1,5 s (début du thème de l'introduction, fondu) avant chaque nouveau sujet et avant la clôture ; pas juste après l'introduction. Les repères de chapitres pointent sur la voix, après le rappel.
+- Migration 6 : l'audio déjà produit est effacé (refait avec le nouveau montage à la première écoute).
+- Option à décider : passer la voix sur ElevenLabs (Eleven v3), plus réaliste que `gpt-4o-mini-tts` — et ce dernier s'arrête le 6 janvier 2027.
+- Tests : 38.
+
 ## Limites connues
 - Sources vérifiées depuis le serveur le 25/11/2026 : 33 actives et fonctionnelles.
   Désactivées : Le Figaro et Les Échos (HTTP 403, refusent les robots — non contourné), ancien flux Corriere et Gazzetta (figés), Le Point, Corriere v2/v3, Corriere dello Sport (en échec).
